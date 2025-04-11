@@ -42,7 +42,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "bcm_host.h"
 #include "revision.h"
 
+#include <lo/lo.h>
+
 typedef struct {
+  int x, y;
   uint32_t screen_width;
   uint32_t screen_height;
   // OpenGL|ES objects
@@ -433,45 +436,12 @@ static void draw_triangles(CUBE_STATE_T *state, GLfloat cx, GLfloat cy,
   check();
 }
 
-static int get_mouse(CUBE_STATE_T *state, int *outx, int *outy) {
-  static int fd = -1;
-  const int width = state->screen_width, height = state->screen_height;
-  static int x = 800, y = 400;
-  const int XSIGN = 1 << 4, YSIGN = 1 << 5;
-  if (fd < 0) {
-    fd = open("/dev/input/mouse0", O_RDONLY | O_NONBLOCK);
-  }
-  if (fd >= 0) {
-    struct {
-      char buttons, dx, dy;
-    } m;
-    while (1) {
-      int bytes = read(fd, &m, sizeof m);
-      if (bytes < (int)sizeof m) goto _exit;
-      if (m.buttons & 8) {
-        break;  // This bit should always be set
-      }
-      read(fd, &m, 1);  // Try to sync up again
-    }
-    if (m.buttons & 3) return m.buttons & 3;
-    x += m.dx;
-    y += m.dy;
-    if (m.buttons & XSIGN) x -= 256;
-    if (m.buttons & YSIGN) y -= 256;
-    if (x < 0) x = 0;
-    if (y < 0) y = 0;
-    if (x > width) x = width;
-    if (y > height) y = height;
-  }
-_exit:
-  if (outx) *outx = x;
-  if (outy) *outy = y;
-  return 0;
-}
-
 //==============================================================================
+int generic_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data);
+int xy_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data);
 
 int main() {
+
   int terminate = 0;
   GLfloat cx, cy;
   bcm_host_init();
@@ -484,6 +454,12 @@ int main() {
   // Clear application state
   memset(state, 0, sizeof(*state));
 
+  lo_server_thread st;
+  st = lo_server_thread_new("7770", NULL);
+  lo_server_thread_add_method(st, "/xy", "ii", xy_handler, state);
+  lo_server_thread_add_method(st, NULL, NULL, generic_handler, state);
+  lo_server_thread_start(st);
+
   // Start OGLES
   init_ogl(state);
   init_shaders(state);
@@ -492,10 +468,37 @@ int main() {
 
   draw_mandelbrot_to_texture(state, cx, cy, 0.003);
   while (!terminate) {
-    int x, y, b;
-    b = get_mouse(state, &x, &y);
-    if (b) break;
-    draw_triangles(state, cx, cy, 0.003, x, y);
+    //int x = 0, y = 0, b = 0;
+    //b = get_mouse(state, &x, &y);
+    //if (b) break;
+    draw_triangles(state, cx, cy, 0.003, state->x, state->y);
   }
+
+  lo_server_thread_free(st);
   return 0;
+}
+
+int generic_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data) {
+    int i;
+
+    printf("path: <%s>\n", path);
+    for (i = 0; i < argc; i++) {
+        printf("arg %d '%c' ", i, types[i]);
+        lo_arg_pp(types[i], argv[i]);
+        printf("\n");
+    }
+    printf("\n");
+    fflush(stdout);
+
+
+
+    return 0;
+}
+
+int xy_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data) {
+    ((CUBE_STATE_T*)user_data)->x = argv[0]->i;
+    ((CUBE_STATE_T*)user_data)->y = argv[1]->i;
+    printf("x:%d y:%d\n", argv[0]->i, argv[1]->i);
+    fflush(stdout);
+    return 0;
 }

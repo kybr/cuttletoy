@@ -15,6 +15,7 @@ _: cuttletoy.o
 		-lpthread \
 		-lrt \
 		-lm \
+		-llo \
 		-L/opt/vc/src/hello_pi/libs/ilclient \
 		-L/opt/vc/src/hello_pi/libs/vgfont \
 		-L/opt/vc/src/hello_pi/libs/revision \
