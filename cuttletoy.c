@@ -439,6 +439,7 @@ static void draw_triangles(CUBE_STATE_T *state, GLfloat cx, GLfloat cy,
 //==============================================================================
 int generic_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data);
 int xy_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data);
+int frag_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data);
 
 int main() {
 
@@ -456,6 +457,7 @@ int main() {
 
   lo_server_thread st;
   st = lo_server_thread_new("7770", NULL);
+  lo_server_thread_add_method(st, "/frag", "s", frag_handler, state);
   lo_server_thread_add_method(st, "/xy", "ii", xy_handler, state);
   lo_server_thread_add_method(st, NULL, NULL, generic_handler, state);
   lo_server_thread_start(st);
@@ -490,8 +492,6 @@ int generic_handler(const char *path, const char *types, lo_arg ** argv, int arg
     printf("\n");
     fflush(stdout);
 
-
-
     return 0;
 }
 
@@ -499,6 +499,12 @@ int xy_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo
     ((CUBE_STATE_T*)user_data)->x = argv[0]->i;
     ((CUBE_STATE_T*)user_data)->y = argv[1]->i;
     printf("x:%d y:%d\n", argv[0]->i, argv[1]->i);
+    fflush(stdout);
+    return 0;
+}
+
+int frag_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data) {
+    printf("frag: %s\n", (char*)argv[0]);
     fflush(stdout);
     return 0;
 }
