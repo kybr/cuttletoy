@@ -67,9 +67,12 @@ typedef struct {
       unif_centre;
   // mandelbrot attribs
   GLuint attr_vertex2, unif_scale2, unif_offset2, unif_centre2;
-} CUBE_STATE_T;
 
-static CUBE_STATE_T _state, *state = &_state;
+  int should_recompile_glsl;
+  char glsl[65000];
+} STATE;
+
+static STATE _state, *state = &_state;
 
 #define check() assert(glGetError() == 0)
 
@@ -91,14 +94,15 @@ static void showprogramlog(GLint shader) {
  * Name: init_ogl
  *
  * Arguments:
- *       CUBE_STATE_T *state - holds OGLES model info
+ *       STATE *state - holds OGLES model info
  *
  * Description: Sets the display, OpenGL|ES context and screen stuff
  *
  * Returns: void
  *
  ***********************************************************/
-static void init_ogl(CUBE_STATE_T *state) {
+
+static void init_ogl(STATE *state) {
   int32_t success = 0;
   EGLBoolean result;
   EGLint num_config;
@@ -197,7 +201,7 @@ static void init_ogl(CUBE_STATE_T *state) {
   check();
 }
 
-static void init_shaders(CUBE_STATE_T *state) {
+static void init_shaders(STATE *state) {
   static const GLfloat vertex_data[] = {-1.0, -1.0, 1.0, 1.0, 1.0, -1.0,
                                         1.0,  1.0,  1.0, 1.0, 1.0, 1.0,
                                         -1.0, 1.0,  1.0, 1.0};
@@ -380,7 +384,7 @@ static void init_shaders(CUBE_STATE_T *state) {
   check();
 }
 
-static void draw_mandelbrot_to_texture(CUBE_STATE_T *state, GLfloat cx,
+static void draw_mandelbrot_to_texture(STATE *state, GLfloat cx,
                                        GLfloat cy, GLfloat scale) {
   // Draw the mandelbrot to a texture
   glBindFramebuffer(GL_FRAMEBUFFER, state->tex_fb);
@@ -401,7 +405,7 @@ static void draw_mandelbrot_to_texture(CUBE_STATE_T *state, GLfloat cx,
   check();
 }
 
-static void draw_triangles(CUBE_STATE_T *state, GLfloat cx, GLfloat cy,
+static void draw_triangles(STATE *state, GLfloat cx, GLfloat cy,
                            GLfloat scale, GLfloat x, GLfloat y) {
   // Now render to the main frame buffer
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -434,6 +438,13 @@ static void draw_triangles(CUBE_STATE_T *state, GLfloat cx, GLfloat cy,
 
   eglSwapBuffers(state->display, state->surface);
   check();
+}
+
+void recompile_glsl(STATE* state) {
+    state->should_recompile_glsl = 0;
+    printf("GOT HERE\n");
+    fflush(stdout);
+    //
 }
 
 //==============================================================================
@@ -470,9 +481,9 @@ int main() {
 
   draw_mandelbrot_to_texture(state, cx, cy, 0.003);
   while (!terminate) {
-    //int x = 0, y = 0, b = 0;
-    //b = get_mouse(state, &x, &y);
-    //if (b) break;
+    if (state->should_recompile_glsl) {
+      recompile_glsl(state);
+    }
     draw_triangles(state, cx, cy, 0.003, state->x, state->y);
   }
 
@@ -496,14 +507,16 @@ int generic_handler(const char *path, const char *types, lo_arg ** argv, int arg
 }
 
 int xy_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data) {
-    ((CUBE_STATE_T*)user_data)->x = argv[0]->i;
-    ((CUBE_STATE_T*)user_data)->y = argv[1]->i;
+    ((STATE*)user_data)->x = argv[0]->i;
+    ((STATE*)user_data)->y = argv[1]->i;
     printf("x:%d y:%d\n", argv[0]->i, argv[1]->i);
     fflush(stdout);
     return 0;
 }
 
 int frag_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data) {
+    strncpy(((STATE*)user_data)->glsl, (char*)argv[0], 65000);
+    ((STATE*)user_data)->should_recompile_glsl = 1;
     printf("frag: %s\n", (char*)argv[0]);
     fflush(stdout);
     return 0;

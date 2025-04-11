@@ -14,6 +14,7 @@ int main(int argc, char *argv[]) {
         printf("OSC error %d: %s\n", lo_address_errno(t), lo_address_errstr(t));
       }
     }
+
     angle += 0.033;
     int x = 500 * cos(angle) + 500;
     int y = 500 * sin(angle) + 500;
