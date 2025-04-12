@@ -60,6 +60,7 @@ int main(int argc, char* argv[]) {
   assert(gl_good());
   glCompileShader(fragment_shader);
   assert(gl_good());
+
   {
     std::string error;
     if (!check_shader_compile(fragment_shader, error)) {
@@ -76,6 +77,14 @@ int main(int argc, char* argv[]) {
   assert(gl_good());
   glLinkProgram(program);
   assert(gl_good());
+
+  {
+    std::string error;
+    if (!check_shader_link(program, error)) {
+      fprintf(stderr, "Error linking program:\n%s\n", error.c_str());
+      return 1;
+    }
+  }
 
   GLint vpos_location = glGetAttribLocation(program, "position");
   assert(vpos_location != -1);

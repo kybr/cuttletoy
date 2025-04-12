@@ -4,7 +4,7 @@
 //
 #ifdef __APPLE__
 #include <OpenGL/gl.h>
-#elif __RPI__
+#elif __RPI1__
 #include "GLES2/gl2.h"
 #endif
 
@@ -23,12 +23,14 @@ bool gl_good() {
     case GL_INVALID_OPERATION:
       fprintf(stderr, "GL_INVALID_OPERATION\n");
       break;
+#ifndef __RPI1__
     case GL_STACK_OVERFLOW:
       fprintf(stderr, "GL_STACK_OVERFLOW\n");
       break;
     case GL_STACK_UNDERFLOW:
       fprintf(stderr, "GL_STACK_UNDERFLOW\n");
       break;
+#endif
     case GL_OUT_OF_MEMORY:
       fprintf(stderr, "GL_OUT_OF_MEMORY\n");
       break;
@@ -48,4 +50,16 @@ bool check_shader_compile(GLuint shader, std::string& error) {
     error += message;
   }
   return compiled == GL_TRUE;
+}
+
+bool check_shader_link(GLuint program, std::string& error) {
+  GLint program_linked;
+  glGetProgramiv(program, GL_LINK_STATUS, &program_linked);
+  if (program_linked != GL_TRUE) {
+    GLsizei log_length = 0;
+    GLchar message[1024];
+    glGetProgramInfoLog(program, 1024, &log_length, message);
+    error += message;
+  }
+  return program_linked == GL_TRUE;
 }

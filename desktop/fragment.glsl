@@ -1,4 +1,3 @@
-#version 110
 uniform float time;
 uniform vec2 size;
 void main() {  //
