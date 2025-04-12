@@ -1,0 +1,10 @@
+
+toy: toy.o GLFW.o
+	$(CC) toy.o GLFW.o -o toy -L/opt/homebrew/lib -lglfw -framework OpenGL
+	./toy
+
+toy.o : toy.cpp
+	$(CC) -c toy.cpp -Wno-deprecated-declarations
+
+GLFW.o : GLFW.cpp Window.hpp
+	$(CC) -c GLFW.cpp -I /opt/homebrew/include

@@ -1,11 +1,11 @@
-CC= c++ -std=c++20
+CC=c++ -std=c++11
 
-toy: toy.o GLFW.o
-	$(CC) toy.o GLFW.o -o toy -L/opt/homebrew/lib -lglfw -framework OpenGL
-	./toy
+ifeq ($(shell uname), Darwin)
+	include Makefile.macos
+else
+	include Makefile.pi
+endif
 
-toy.o : toy.cpp
-	$(CC) -c toy.cpp -Wno-deprecated-declarations
+clean:
+	@rm *.o toy
 
-GLFW.o : GLFW.cpp Window.hpp
-	$(CC) -c GLFW.cpp -I /opt/homebrew/include
