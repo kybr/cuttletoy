@@ -59,3 +59,5 @@ cuttletoy.o: cuttletoy.c
 		-o cuttletoy.o \
 		-Wno-deprecated-declarations
 
+fake: fake.c
+	cc fake.c -llo -lm -o fake

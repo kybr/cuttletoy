@@ -23,6 +23,10 @@ int main(int argc, char *argv[]) {
       printf("OSC error %d: %s\n", lo_address_errno(t), lo_address_errstr(t));
     }
 
-    usleep(16670);
+    int fps = 20;
+    usleep(1000000.0/fps);
+    printf("\33[2K\r");
+    printf("%d", n);
+    fflush(stdout);
   }
 }

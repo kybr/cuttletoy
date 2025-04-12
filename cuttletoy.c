@@ -1,32 +1,3 @@
-/*
-Copyright (c) 2012, Broadcom Europe Ltd
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of the copyright holder nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
-
-// OpenGL|ES 2 demo using shader to compute mandelbrot/julia sets
-// Thanks to Peter de Rivas for original Python code
 
 #include <assert.h>
 #include <fcntl.h>
@@ -42,7 +13,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "bcm_host.h"
 #include "revision.h"
 
+#include <time.h>
+
 #include <lo/lo.h>
+
+#define GLSL_SIZE (65000)
 
 typedef struct {
   int x, y;
@@ -69,7 +44,7 @@ typedef struct {
   GLuint attr_vertex2, unif_scale2, unif_offset2, unif_centre2;
 
   int should_recompile_glsl;
-  char glsl[65000];
+  char glsl[GLSL_SIZE];
 } STATE;
 
 static STATE _state, *state = &_state;
@@ -405,7 +380,7 @@ static void draw_mandelbrot_to_texture(STATE *state, GLfloat cx,
   check();
 }
 
-static void draw_triangles(STATE *state, GLfloat cx, GLfloat cy,
+static void draw(STATE *state, GLfloat cx, GLfloat cy,
                            GLfloat scale, GLfloat x, GLfloat y) {
   // Now render to the main frame buffer
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -447,21 +422,27 @@ void recompile_glsl(STATE* state) {
     //
 }
 
+double tic() {
+  struct timespec t;
+  clock_gettime(CLOCK_MONOTONIC, &t);
+  return t.tv_sec + t.tv_nsec / 1000000000.0;
+}
+
 //==============================================================================
 int generic_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data);
 int xy_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data);
 int frag_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data);
 
 int main() {
+  if (get_processor_id() == PROCESSOR_BCM2838) {
+    puts("This demo application is not available on the Pi4\n\n");
+    exit(0);
+  }
 
   int terminate = 0;
   GLfloat cx, cy;
   bcm_host_init();
 
-  if (get_processor_id() == PROCESSOR_BCM2838) {
-    puts("This demo application is not available on the Pi4\n\n");
-    exit(0);
-  }
 
   // Clear application state
   memset(state, 0, sizeof(*state));
@@ -480,11 +461,23 @@ int main() {
   cy = state->screen_height / 2;
 
   draw_mandelbrot_to_texture(state, cx, cy, 0.003);
+
+  double then = tic();
   while (!terminate) {
+
+
     if (state->should_recompile_glsl) {
       recompile_glsl(state);
     }
-    draw_triangles(state, cx, cy, 0.003, state->x, state->y);
+
+    draw(state, cx, cy, 0.003, state->x, state->y);
+
+    // calculate FPS
+    //
+    double now = tic();
+    double fps = 1 / (now - then);
+    printf("FPS: %.1lf delta: %.3lf\n", fps, 1 / fps);
+    then = now;
   }
 
   lo_server_thread_free(st);
@@ -515,7 +508,7 @@ int xy_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo
 }
 
 int frag_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data) {
-    strncpy(((STATE*)user_data)->glsl, (char*)argv[0], 65000);
+    strncpy(((STATE*)user_data)->glsl, (char*)argv[0], GLSL_SIZE);
     ((STATE*)user_data)->should_recompile_glsl = 1;
     printf("frag: %s\n", (char*)argv[0]);
     fflush(stdout);
