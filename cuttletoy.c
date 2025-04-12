@@ -19,6 +19,13 @@
 
 #define GLSL_SIZE (65000)
 
+#define ASSERT(target, value, message) do { \
+  if (target != value) { \
+    printf(message); \
+    exit(1); \
+  } \
+} while (0)
+
 typedef struct {
   int x, y;
   uint32_t screen_width;
@@ -32,8 +39,8 @@ typedef struct {
   GLuint vshader;
   GLuint fshader;
   GLuint mshader;
-  GLuint program;
-  GLuint program2;
+  GLuint program_julia;
+  GLuint program_mandelbrot;
   GLuint tex_fb;
   GLuint tex;
   GLuint buf;
@@ -46,8 +53,6 @@ typedef struct {
   int should_recompile_glsl;
   char glsl[GLSL_SIZE];
 } STATE;
-
-static STATE _state, *state = &_state;
 
 #define check() assert(glGetError() == 0)
 
@@ -285,34 +290,34 @@ static void init_shaders(STATE *state) {
   if (state->verbose) showlog(state->mshader);
 
   // julia
-  state->program = glCreateProgram();
-  glAttachShader(state->program, state->vshader);
-  glAttachShader(state->program, state->fshader);
-  glLinkProgram(state->program);
+  state->program_julia = glCreateProgram();
+  glAttachShader(state->program_julia, state->vshader);
+  glAttachShader(state->program_julia, state->fshader);
+  glLinkProgram(state->program_julia);
   check();
 
-  if (state->verbose) showprogramlog(state->program);
+  if (state->verbose) showprogramlog(state->program_julia);
 
-  state->attr_vertex = glGetAttribLocation(state->program, "vertex");
-  state->unif_color = glGetUniformLocation(state->program, "color");
-  state->unif_scale = glGetUniformLocation(state->program, "scale");
-  state->unif_offset = glGetUniformLocation(state->program, "offset");
-  state->unif_tex = glGetUniformLocation(state->program, "tex");
-  state->unif_centre = glGetUniformLocation(state->program, "centre");
+  state->attr_vertex = glGetAttribLocation(state->program_julia, "vertex");
+  state->unif_color = glGetUniformLocation(state->program_julia, "color");
+  state->unif_scale = glGetUniformLocation(state->program_julia, "scale");
+  state->unif_offset = glGetUniformLocation(state->program_julia, "offset");
+  state->unif_tex = glGetUniformLocation(state->program_julia, "tex");
+  state->unif_centre = glGetUniformLocation(state->program_julia, "centre");
 
   // mandelbrot
-  state->program2 = glCreateProgram();
-  glAttachShader(state->program2, state->vshader);
-  glAttachShader(state->program2, state->mshader);
-  glLinkProgram(state->program2);
+  state->program_mandelbrot = glCreateProgram();
+  glAttachShader(state->program_mandelbrot, state->vshader);
+  glAttachShader(state->program_mandelbrot, state->mshader);
+  glLinkProgram(state->program_mandelbrot);
   check();
 
-  if (state->verbose) showprogramlog(state->program2);
+  if (state->verbose) showprogramlog(state->program_mandelbrot);
 
-  state->attr_vertex2 = glGetAttribLocation(state->program2, "vertex");
-  state->unif_scale2 = glGetUniformLocation(state->program2, "scale");
-  state->unif_offset2 = glGetUniformLocation(state->program2, "offset");
-  state->unif_centre2 = glGetUniformLocation(state->program2, "centre");
+  state->attr_vertex2 = glGetAttribLocation(state->program_mandelbrot, "vertex");
+  state->unif_scale2 = glGetUniformLocation(state->program_mandelbrot, "scale");
+  state->unif_offset2 = glGetUniformLocation(state->program_mandelbrot, "offset");
+  state->unif_centre2 = glGetUniformLocation(state->program_mandelbrot, "centre");
   check();
 
   glClearColor(0.0, 1.0, 1.0, 1.0);
@@ -366,7 +371,7 @@ static void draw_mandelbrot_to_texture(STATE *state, GLfloat cx,
   check();
   glBindBuffer(GL_ARRAY_BUFFER, state->buf);
 
-  glUseProgram(state->program2);
+  glUseProgram(state->program_mandelbrot);
   check();
 
   glUniform2f(state->unif_scale2, scale, scale);
@@ -390,7 +395,7 @@ static void draw(STATE *state, GLfloat cx, GLfloat cy,
 
   glBindBuffer(GL_ARRAY_BUFFER, state->buf);
   check();
-  glUseProgram(state->program);
+  glUseProgram(state->program_julia);
   check();
   glBindTexture(GL_TEXTURE_2D, state->tex);
   check();
@@ -416,10 +421,200 @@ static void draw(STATE *state, GLfloat cx, GLfloat cy,
 }
 
 void recompile_glsl(STATE* state) {
-    state->should_recompile_glsl = 0;
-    printf("GOT HERE\n");
-    fflush(stdout);
-    //
+  state->should_recompile_glsl = 0;
+  printf("GOT HERE\n");
+  fflush(stdout);
+
+  const GLchar *vertex_source_string =
+      "attribute vec4 vertex;"
+      "varying vec2 tcoord;"
+      "void main(void) {"
+      " vec4 pos = vertex;"
+      " gl_Position = pos;"
+      " tcoord = vertex.xy*0.5+0.5;"
+      "}";
+
+  // Mandelbrot
+  const GLchar *fragment_source_mandelbrot =
+      "uniform vec4 color;"
+      "uniform vec2 scale;"
+      "uniform vec2 centre;"
+      "varying vec2 tcoord;"
+      "void main(void) {"
+      "  float intensity;"
+      "  vec4 color2;"
+      "  float cr=(gl_FragCoord.x-centre.x)*scale.x;"
+      "  float ci=(gl_FragCoord.y-centre.y)*scale.y;"
+      "  float ar=cr;"
+      "  float ai=ci;"
+      "  float tr,ti;"
+      "  float col=0.0;"
+      "  float p=0.0;"
+      "  int i=0;"
+      "  for(int i2=1;i2<16;i2++)"
+      "  {"
+      "    tr=ar*ar-ai*ai+cr;"
+      "    ti=2.0*ar*ai+ci;"
+      "    p=tr*tr+ti*ti;"
+      "    ar=tr;"
+      "    ai=ti;"
+      "    if (p>16.0)"
+      "    {"
+      "      i=i2;"
+      "      break;"
+      "    }"
+      "  }"
+      "  color2 = vec4(float(i)*0.0625,0,0,1);"
+      "  gl_FragColor = color2;"
+      "}";
+
+  // Julia
+  const GLchar *fragment_source_julia =
+      "uniform vec4 color;"
+      "uniform vec2 scale;"
+      "uniform vec2 centre;"
+      "uniform vec2 offset;"
+      "varying vec2 tcoord;"
+      "uniform sampler2D tex;"
+      "void main(void) {"
+      "  float intensity;"
+      "  vec4 color2;"
+      "  float ar=(gl_FragCoord.x-centre.x)*scale.x;"
+      "  float ai=(gl_FragCoord.y-centre.y)*scale.y;"
+      "  float cr=(offset.x-centre.x)*scale.x;"
+      "  float ci=(offset.y-centre.y)*scale.y;"
+      "  float tr,ti;"
+      "  float col=0.0;"
+      "  float p=0.0;"
+      "  int i=0;"
+      "  vec2 t2;"
+      "  t2.x=tcoord.x+(offset.x-centre.x)*(0.5/centre.y);"
+      "  t2.y=tcoord.y+(offset.y-centre.y)*(0.5/centre.x);"
+      "  for(int i2=1;i2<16;i2++)"
+      "  {"
+      "    tr=ar*ar-ai*ai+cr;"
+      "    ti=2.0*ar*ai+ci;"
+      "    p=tr*tr+ti*ti;"
+      "    ar=tr;"
+      "    ai=ti;"
+      "    if (p>16.0)"
+      "    {"
+      "      i=i2;"
+      "      break;"
+      "    }"
+      "  }"
+      "  color2 = vec4(0,float(i)*0.0625,0,1);"
+      "  color2 = color2+texture2D(tex,t2);"
+      "  gl_FragColor = color2;"
+      "}";
+
+  GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+  assert(vs != 0);
+  glShaderSource(vs, 1, &vertex_source_string, 0);
+  check();
+  glCompileShader(vs);
+  check();
+  if (state->verbose) showlog(vs);
+
+  GLuint js = glCreateShader(GL_FRAGMENT_SHADER);
+  assert(js != 0);
+  glShaderSource(js, 1, &fragment_source_julia, 0);
+  check();
+  glCompileShader(js);
+  check();
+
+  if (state->verbose) showlog(js);
+
+  GLuint ms = glCreateShader(GL_FRAGMENT_SHADER);
+  assert(ms != 0);
+  glShaderSource(ms, 1, &fragment_source_mandelbrot, 0);
+  check();
+  glCompileShader(state->mshader);
+  check();
+
+  if (state->verbose) showlog(ms);
+
+
+  // julia
+  GLuint jp = glCreateProgram();
+  assert(jp != 0);
+  glAttachShader(jp, vs);
+  check();
+  glAttachShader(jp, js);
+  check();
+  glLinkProgram(jp);
+  check();
+
+  if (state->verbose) showprogramlog(jp);
+
+/*
+
+  state->attr_vertex = glGetAttribLocation(state->program_julia, "vertex");
+  state->unif_color = glGetUniformLocation(state->program_julia, "color");
+  state->unif_scale = glGetUniformLocation(state->program_julia, "scale");
+  state->unif_offset = glGetUniformLocation(state->program_julia, "offset");
+  state->unif_tex = glGetUniformLocation(state->program_julia, "tex");
+  state->unif_centre = glGetUniformLocation(state->program_julia, "centre");
+
+  // mandelbrot
+  state->program_mandelbrot = glCreateProgram();
+  glAttachShader(state->program_mandelbrot, state->vshader);
+  glAttachShader(state->program_mandelbrot, state->mshader);
+  glLinkProgram(state->program_mandelbrot);
+  check();
+
+  if (state->verbose) showprogramlog(state->program_mandelbrot);
+
+  state->attr_vertex2 = glGetAttribLocation(state->program_mandelbrot, "vertex");
+  state->unif_scale2 = glGetUniformLocation(state->program_mandelbrot, "scale");
+  state->unif_offset2 = glGetUniformLocation(state->program_mandelbrot, "offset");
+  state->unif_centre2 = glGetUniformLocation(state->program_mandelbrot, "centre");
+  check();
+
+  glClearColor(0.0, 1.0, 1.0, 1.0);
+
+  glGenBuffers(1, &state->buf);
+
+  check();
+
+  // Prepare a texture image
+  glGenTextures(1, &state->tex);
+  check();
+  glBindTexture(GL_TEXTURE_2D, state->tex);
+  check();
+  // glActiveTexture(0)
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, state->screen_width,
+               state->screen_height, 0, GL_RGB, GL_UNSIGNED_SHORT_5_6_5, 0);
+  check();
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  check();
+  // Prepare a framebuffer for rendering
+  glGenFramebuffers(1, &state->tex_fb);
+  check();
+  glBindFramebuffer(GL_FRAMEBUFFER, state->tex_fb);
+  check();
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                         state->tex, 0);
+  check();
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  check();
+  // Prepare viewport
+  glViewport(0, 0, state->screen_width, state->screen_height);
+  check();
+
+  // Upload vertex data to a buffer
+  glBindBuffer(GL_ARRAY_BUFFER, state->buf);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_data), vertex_data,
+               GL_STATIC_DRAW);
+  glVertexAttribPointer(state->attr_vertex, 4, GL_FLOAT, 0, 16, 0);
+  glEnableVertexAttribArray(state->attr_vertex);
+  glVertexAttribPointer(state->attr_vertex2, 4, GL_FLOAT, 0, 16, 0);
+  glEnableVertexAttribArray(state->attr_vertex2);
+
+  check();
+*/
+
 }
 
 double tic() {
@@ -445,42 +640,44 @@ int main() {
 
 
   // Clear application state
-  memset(state, 0, sizeof(*state));
+  STATE state;
+  memset(&state, 0, sizeof(STATE));
 
-  lo_server_thread st;
-  st = lo_server_thread_new("7770", NULL);
-  lo_server_thread_add_method(st, "/frag", "s", frag_handler, state);
-  lo_server_thread_add_method(st, "/xy", "ii", xy_handler, state);
-  lo_server_thread_add_method(st, NULL, NULL, generic_handler, state);
-  lo_server_thread_start(st);
+  state.verbose = 1;
+
+  lo_server_thread server;
+  server = lo_server_thread_new("7770", NULL);
+  lo_server_thread_add_method(server, "/frag", "s", frag_handler, &state);
+  lo_server_thread_add_method(server, "/xy", "ii", xy_handler, &state);
+  lo_server_thread_add_method(server, NULL, NULL, generic_handler, &state);
+  lo_server_thread_start(server);
 
   // Start OGLES
-  init_ogl(state);
-  init_shaders(state);
-  cx = state->screen_width / 2;
-  cy = state->screen_height / 2;
+  init_ogl(&state);
+  init_shaders(&state);
+  cx = state.screen_width / 2;
+  cy = state.screen_height / 2;
 
-  draw_mandelbrot_to_texture(state, cx, cy, 0.003);
+  draw_mandelbrot_to_texture(&state, cx, cy, 0.003);
 
   double then = tic();
   while (!terminate) {
 
-
-    if (state->should_recompile_glsl) {
-      recompile_glsl(state);
+    if (state.should_recompile_glsl) {
+      recompile_glsl(&state);
     }
 
-    draw(state, cx, cy, 0.003, state->x, state->y);
+    draw(&state, cx, cy, 0.003, state.x, state.y);
 
     // calculate FPS
     //
     double now = tic();
     double fps = 1 / (now - then);
-    printf("FPS: %.1lf delta: %.3lf\n", fps, 1 / fps);
+    //printf("FPS: %.1lf delta: %.3lf\n", fps, 1 / fps);
     then = now;
   }
 
-  lo_server_thread_free(st);
+  lo_server_thread_free(server);
   return 0;
 }
 
@@ -502,8 +699,8 @@ int generic_handler(const char *path, const char *types, lo_arg ** argv, int arg
 int xy_handler(const char *path, const char *types, lo_arg ** argv, int argc, lo_message data, void *user_data) {
     ((STATE*)user_data)->x = argv[0]->i;
     ((STATE*)user_data)->y = argv[1]->i;
-    printf("x:%d y:%d\n", argv[0]->i, argv[1]->i);
-    fflush(stdout);
+    //printf("x:%d y:%d\n", argv[0]->i, argv[1]->i);
+    //fflush(stdout);
     return 0;
 }
 

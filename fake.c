@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
   int n = 0;
   while (1) {
     n++;
-    if (n % 200 == 0) {
+    if (n % 50 == 0) {
       if (lo_send(t, "/frag", "s", "this is a fragment shader") == -1) {
         printf("OSC error %d: %s\n", lo_address_errno(t), lo_address_errstr(t));
       }
