@@ -1,4 +1,3 @@
-CC= c++ -std=c++11
 
 toy: toy.o RPI1.o
 	$(CC) \

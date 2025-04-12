@@ -4,7 +4,7 @@ toy: toy.o GLFW.o
 	./toy
 
 toy.o : toy.cpp
-	$(CC) -c toy.cpp -Wno-deprecated-declarations
+	$(CC) -c toy.cpp -D__MACOS__ -Wno-deprecated-declarations
 
 GLFW.o : GLFW.cpp Window.hpp
 	$(CC) -c GLFW.cpp -I /opt/homebrew/include
