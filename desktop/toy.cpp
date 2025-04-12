@@ -108,6 +108,7 @@ int main(int argc, char* argv[]) {
   GLint location_time = glGetUniformLocation(program, "time");
   GLint location_size = glGetUniformLocation(program, "size");
 
+  auto then = std::chrono::high_resolution_clock::now();
   while (!window.done()) {
     int width, height;
     window.size(width, height);
@@ -115,15 +116,19 @@ int main(int argc, char* argv[]) {
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    double t = std::chrono::duration<double>(
-                   std::chrono::high_resolution_clock::now() - begining)
-                   .count();
+    auto now = std::chrono::high_resolution_clock::now();
+    double t = std::chrono::duration<double>(now - begining).count();
+    double dt = std::chrono::duration<double>(now - then).count();
+    then = now;
 
     glUseProgram(program);
     glUniform1f(location_time, t);
     glUniform2f(location_size, width, height);
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    double fps = 1 / dt;
+    printf("FPS: %.1lf delta: %.3lf\n", fps, dt);
 
     window.swap();
   }
