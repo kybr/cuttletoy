@@ -1,10 +1,21 @@
 
+INCLUDE=
+INCLUDE+= -I /opt/homebrew/include
+LIBRARY=
+LIBRARY+= -L /opt/homebrew/lib
+LIBRARY+= -llo
+LIBRARY+= -lglfw
+
 toy: toy.o GLFW.o
-	$(CC) toy.o GLFW.o -o toy -L/opt/homebrew/lib -lglfw -framework OpenGL
+	$(CC) toy.o GLFW.o -o toy $(LIBRARY) -framework OpenGL
 	./toy
 
 toy.o : toy.cpp
-	$(CC) -c toy.cpp -D__MACOS__ -Wno-deprecated-declarations
+	$(CC) -c toy.cpp $(INCLUDE) -Wno-deprecated-declarations
 
 GLFW.o : GLFW.cpp Window.hpp
-	$(CC) -c GLFW.cpp -I /opt/homebrew/include
+	$(CC) -c GLFW.cpp $(INCLUDE)
+
+controller: controller.cpp
+	$(CC) controller.cpp $(INCLUDE)
+

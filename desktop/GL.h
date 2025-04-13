@@ -2,7 +2,7 @@
 
 // choose the right OpenGL header...
 //
-#ifdef __MACOS__
+#ifdef __APPLE__
 #include <OpenGL/gl.h>
 #elif __RPI1__
 #include "GLES2/gl2.h"

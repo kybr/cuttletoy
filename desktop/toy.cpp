@@ -1,35 +1,42 @@
+#include <lo/lo.h>
+#include <lo/lo_cpp.h>
+
 #include <cassert>
-#include <fstream>
-
-#include "GL.h"
-#include "Window.hpp"
-std::string slurp(std::string fileName) {
-  std::fstream file(fileName);
-  std::string returnValue = "";
-  while (file.good()) {
-    std::string line;
-    getline(file, line);
-    returnValue += line + "\n";
-  }
-  return returnValue;
-}
-
-/*
-class ShaderManager {
-  std::unordered_map<std::string, GLint> uniform;
-  public:
-
-  // tries to compile and link
-  bool submit(const char* fragment) {
-  }
-};
-*/
-
 #include <chrono>
 
+#include "GL.h"
+#include "Help.hpp"
+#include "Window.hpp"
+
 int main(int argc, char* argv[]) {
-  std::chrono::high_resolution_clock::time_point begining =
-      std::chrono::high_resolution_clock::now();
+  auto begining = std::chrono::steady_clock::now();
+
+  lo::ServerThread server(
+      9000, [](int n, const char* message, const char* where) {
+        std::cout << "ERROR: " << message << "(" << where << ")" << std::endl;
+        fflush(stdout);
+      });
+  assert(server.is_valid());
+
+  // lo::Address remote("nowhere", 2000);
+
+  server.add_method(
+      "/frag", "s", [&](lo_arg** argv, int argc, lo::Message msg) {
+        printf("got here\n");
+        fflush(stdout);
+        if (argc != 1) {
+          std::cerr << "Error: expected 1 argument, got " << argc << std::endl;
+          return;
+        }
+
+        // remember who we last talked to...
+        // remote = msg.source();
+
+        const char* fragment = static_cast<const char*>(&argv[0]->s);
+        std::cout << "fragment:\n/" << fragment << std::endl;
+      });
+
+  server.start();
 
   Window window;
 
@@ -108,7 +115,7 @@ int main(int argc, char* argv[]) {
   GLint location_time = glGetUniformLocation(program, "time");
   GLint location_size = glGetUniformLocation(program, "size");
 
-  auto then = std::chrono::high_resolution_clock::now();
+  auto then = std::chrono::steady_clock::now();
   while (!window.done()) {
     int width, height;
     window.size(width, height);
@@ -116,19 +123,21 @@ int main(int argc, char* argv[]) {
     glViewport(0, 0, width, height);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    auto now = std::chrono::high_resolution_clock::now();
-    double t = std::chrono::duration<double>(now - begining).count();
+    auto now = std::chrono::steady_clock::now();
     double dt = std::chrono::duration<double>(now - then).count();
     then = now;
 
     glUseProgram(program);
+
+    double t = std::chrono::duration<double>(now - begining).count();
     glUniform1f(location_time, t);
+
     glUniform2f(location_size, width, height);
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     double fps = 1 / dt;
-    printf("FPS: %.1lf delta: %.3lf\n", fps, dt);
+    // printf("FPS: %.1lf delta: %.3lf\n", fps, dt);
 
     window.swap();
   }
