@@ -1,2 +1,5 @@
+toy
+build
 cuttletoy
+.vscode
 *.o
