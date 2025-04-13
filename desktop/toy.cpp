@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <chrono>
+#include <iostream>
 
 #include "GL.h"
 #include "Help.hpp"
