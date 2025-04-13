@@ -1,7 +1,10 @@
+
+#include <cassert>
+// <cassert> must come before liblo on the pi
+
 #include <lo/lo.h>
 #include <lo/lo_cpp.h>
 
-#include <cassert>
 #include <chrono>
 #include <iostream>
 
