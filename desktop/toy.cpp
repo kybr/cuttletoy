@@ -6,6 +6,7 @@
 #include <lo/lo_cpp.h>
 
 #include <chrono>
+#include <cstring>
 #include <iostream>
 
 #include "GL.h"
