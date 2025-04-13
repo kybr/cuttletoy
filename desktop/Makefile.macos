@@ -1,6 +1,12 @@
 
+FLAGS=
+FLAGS+= -Wall
+FLAGS+= -g
+FLAGS+= -O0
+
 INCLUDE=
 INCLUDE+= -I /opt/homebrew/include
+
 LIBRARY=
 LIBRARY+= -L /opt/homebrew/lib
 LIBRARY+= -llo
