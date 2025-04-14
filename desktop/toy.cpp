@@ -116,16 +116,13 @@ class Toy {
     assert(gl_good());
   }
 
-  bool submit(const char* fragment_shader_text) {
+  bool compile(const char* fragment_shader_text, std::string& error) {
     auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment_shader, 1, &fragment_shader_text, nullptr);
     glCompileShader(fragment_shader);
-    {
-      std::string error;
-      if (!check_shader_compile(fragment_shader, error)) {
-        fprintf(stderr, "Error compiling GLSL:\n%s\n", error.c_str());
-        return false;
-      }
+    if (!check_shader_compile(fragment_shader, error)) {
+      fprintf(stderr, "Error compiling GLSL:\n%s\n", error.c_str());
+      return false;
     }
 
     // XXX maybe delete program?
@@ -134,16 +131,16 @@ class Toy {
     glAttachShader(program, vertex_shader);
     glAttachShader(program, fragment_shader);
     glLinkProgram(program);
-    {
-      std::string error;
-      if (!check_shader_link(program, error)) {
-        fprintf(stderr, "Error linking program:\n%s\n", error.c_str());
-        return false;
-      }
+    if (!check_shader_link(program, error)) {
+      fprintf(stderr, "Error linking program:\n%s\n", error.c_str());
+      return false;
     }
 
     auto location_attribute_position = glGetAttribLocation(program, "position");
     if (location_attribute_position == -1) {
+      // XXX this should never happen
+      exit(1);
+      error += "Could not find 'position' attribute\n";
       fprintf(stderr, "Error: no position attribute\n");
       return false;
     }
@@ -153,6 +150,7 @@ class Toy {
 
     auto location_time = glGetUniformLocation(program, "time");
     auto location_size = glGetUniformLocation(program, "size");
+
     if (gl_good()) {
       // this new shader is good; overwrite the old stuff
       this->program = program;
@@ -163,6 +161,7 @@ class Toy {
       return true;
     }
 
+    error += "Unknown error\n";
     return false;
   }
 };
@@ -180,17 +179,17 @@ int main(int argc, char* argv[]) {
   bool hasNewFrag = false;
   char fragment[65000];
 
-  // lo::Address remote("nowhere", 2000);
-  server.add_method("/g", "ib", [&](lo_arg** argv, int) {
-    int version = argv[0]->i;
-    int size = argv[1]->blob.size;
-    // const char *blob = &argv[1]->blob.data;
-    printf("glsl blob %d bytes (version %d)\n", size, version);
-    memcpy(fragment, reinterpret_cast<const char*>(&argv[1]->blob.data), size);
-    fragment[size] = '\0';
+  lo::Address* remote = nullptr;
+  server.add_method("/frag", "s", [&](lo_arg** argv, int, lo::Message m) {
+    if (remote) {
+      delete remote;
+    }
+    remote = new lo::Address(m.source().hostname(), 7771);
+
+    strncpy(fragment, &argv[0]->s, sizeof(fragment));
     hasNewFrag = true;
 
-    printf("====== fragment ========================\n%s\n", fragment);
+    printf("fragment is %d bytes\n", (int)strlen(fragment));
     fflush(stdout);
   });
 
@@ -205,7 +204,12 @@ int main(int argc, char* argv[]) {
 
     if (hasNewFrag) {
       hasNewFrag = false;
-      toy.submit(fragment);
+      std::string error;
+      if (!toy.compile(fragment, error)) {
+        if (remote) {
+          remote->send("/err", "s", error.c_str());
+        }
+      }
     }
 
     int width, height;

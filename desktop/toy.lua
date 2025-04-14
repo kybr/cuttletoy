@@ -24,62 +24,28 @@ local function send_code()
   -- get all the lines in the current buffer and make a single string
   --
   local lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
-  -- XXX fix local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, true)
-  local blob = table.concat(lines, "\n")
 
+  local text = table.concat(lines, "\n")
 
-  -- "the size of an OSC blob must be a multiple of 4 bytes"
+  -- OSC strings are null terminated
   --
-  local i = string.len(blob) % 4
+  text = text .. "\0"
+
+  -- OSC strings are filled out with nulls until they are a multiple of 4 bytes
+  --
+  local i = string.len(text) % 4
   if i == 3 then
-    blob = blob .. "\0"
+    text = text .. "\0"
   elseif i == 2 then
-    blob = blob .. "\0"
-    blob = blob .. "\0"
+    text = text .. "\0"
+    text = text .. "\0"
   elseif i == 1 then
-    blob = blob .. "\0"
-    blob = blob .. "\0"
-    blob = blob .. "\0"
+    text = text .. "\0"
+    text = text .. "\0"
+    text = text .. "\0"
   end
 
-
-  -- the length of the code
-  local _length = string.len(blob)
-  local length = string.char(
-    bit.band(bit.rshift(_length, 24), 255),
-    bit.band(bit.rshift(_length, 16), 255),
-    bit.band(bit.rshift(_length, 8), 255),
-    bit.band(_length, 255))
-  blob = length .. blob
-
-
-  -- XXX: add metadata here
-  --
-  -- version (DONE)
-  -- time stamp
-  -- file name
-  -- 
-
-
-  -- the version number of the given file
-  local version = string.char(
-    bit.band(bit.rshift(_version, 24), 255),
-    bit.band(bit.rshift(_version, 16), 255),
-    bit.band(bit.rshift(_version, 8), 255),
-    bit.band(_version, 255))
-  _version = 1 + _version -- make this a dictionary
-
-
-
-  -- prepend an OSC header like this:
-  -- XX XX XX XX CC II BB 00 VV VV VV VV ZZ ZZ ZZ ZZ [16 bytes]
-  --  /  g \0 \0  ,  i  b \0   (version) (data size)
-  -- version: big-endian 32-bit int
-  -- data size: big-endian 32-bit int
-  --
-  local data = "/g\0\0,ib\0" .. version .. blob
-  -- XXX maybe implement a small OSC library?
-
+  local data = "/frag\0\0\0,s\0\0" .. text
 
 
   -- check that the string is no more than 65507 bytes total
