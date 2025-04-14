@@ -12,6 +12,7 @@
 #include "GL.h"
 #include "Help.hpp"
 #include "Window.hpp"
+#include "Conf.hpp"
 
 static const struct {
   float x, y;
@@ -168,6 +169,23 @@ class Toy {
 
 int main(int argc, char* argv[]) {
   auto begining = std::chrono::steady_clock::now();
+
+  Conf conf;
+  if (!conf.load()) {
+    printf("No configuration loaded\n");
+  }
+
+  // if we are on the pi, load a config file that
+  // determines uniforms and such
+  {
+    std::string mac;
+    std::ifstream file("/sys/class/net/eth0/address");
+    if (file.is_open()) {
+      if (std::getline(file, mac)) {
+        printf("got mac address %s\n", mac.c_str());
+      }
+    }
+  }
 
   lo::ServerThread server(
       7770, [](int n, const char* message, const char* where) {

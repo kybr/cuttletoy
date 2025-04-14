@@ -13,7 +13,7 @@ LIBRARY+= -llo
 LIBRARY+= -lglfw
 
 toy: toy.o GLFW.o
-	$(CC) toy.o GLFW.o -o toy $(LIBRARY) -framework OpenGL
+	$(CC) toy.o GLFW.o Conf.o -o toy $(LIBRARY) -framework OpenGL
 	./toy
 
 toy.o : toy.cpp
@@ -25,3 +25,4 @@ GLFW.o : GLFW.cpp Window.hpp
 controller: controller.cpp
 	$(CC) controller.cpp $(INCLUDE)
 
+include Makefile.common

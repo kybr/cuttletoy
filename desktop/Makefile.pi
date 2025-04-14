@@ -4,6 +4,7 @@ toy: toy.o RPI1.o
 		-o toy \
 		-Wl,--whole-archive \
 		toy.o \
+		Conf.o \
 		RPI1.o \
 		-lrevision \
 		-L/opt/vc/lib/ \
@@ -95,3 +96,5 @@ RPI1.o : RPI1.cpp Window.hpp
 		-I/opt/vc/src/hello_pi/libs/revision \
 		-g \
 		-c RPI1.cpp \
+
+include Makefile.common
