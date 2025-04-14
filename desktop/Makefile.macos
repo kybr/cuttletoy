@@ -12,7 +12,7 @@ LIBRARY+= -L /opt/homebrew/lib
 LIBRARY+= -llo
 LIBRARY+= -lglfw
 
-toy: toy.o GLFW.o
+toy: toy.o GLFW.o Conf.o
 	$(CC) toy.o GLFW.o Conf.o -o toy $(LIBRARY) -framework OpenGL
 	./toy
 

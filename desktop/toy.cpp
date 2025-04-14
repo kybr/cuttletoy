@@ -1,3 +1,4 @@
+// #define NDEBUG
 
 #include <cassert>
 // <cassert> must come before liblo on the pi
@@ -9,25 +10,43 @@
 #include <cstring>
 #include <iostream>
 
+#include "Conf.hpp"
 #include "GL.h"
 #include "Help.hpp"
 #include "Window.hpp"
-#include "Conf.hpp"
 
 static const struct {
   float x, y;
 } vertices[4] = {{-1.0, -1.0}, {-1.0, 1.0}, {1.0, 1.0}, {1.0, -1.0}};
+
 class Toy {
   GLuint program;
   GLuint vertex_shader;
-  GLuint fragment_shader;
   GLint location_attribute_position;
   GLuint vertex_buffer;
-  GLint location_time;
-  GLint location_size;
+
+  // uniforms.....
+  GLint uniform_time;
+  GLint uniform_size;
+  GLint uniform_screen;
+  GLint uniform_screen_maximum;
+  GLint uniform_pixel_offset;
+  GLint uniform_pixel_offset_maximum;
+  GLint uniform_parameter;
+
+  Conf conf;
+  bool running_on_pi = false;
 
  public:
+  void load_conf_uniforms() {}
+  void send_conf_uniforms() {}
+
   Toy() {
+    if (conf.load()) {
+      conf.show();
+      running_on_pi = true;
+    }
+
     auto vertex_string = slurp("vertex.glsl");
     const char* vertex_shader_text = vertex_string.c_str();
 
@@ -49,7 +68,7 @@ class Toy {
     auto fragment_string = slurp("fragment.glsl");
     const char* fragment_shader_text = fragment_string.c_str();
 
-    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
     assert(fragment_shader);
     glShaderSource(fragment_shader, 1, &fragment_shader_text, nullptr);
     assert(gl_good());
@@ -81,6 +100,8 @@ class Toy {
       }
     }
 
+    glDeleteShader(fragment_shader);
+
     location_attribute_position = glGetAttribLocation(program, "position");
     assert(location_attribute_position != -1);
     glEnableVertexAttribArray(location_attribute_position);
@@ -95,26 +116,11 @@ class Toy {
                           sizeof(vertices[0]), (void*)0);
     assert(gl_good());
 
-    location_time = glGetUniformLocation(program, "time");
-    location_size = glGetUniformLocation(program, "size");
+    uniform_time = glGetUniformLocation(program, "u_time");
+    uniform_size = glGetUniformLocation(program, "u_size");
     assert(gl_good());
-  }
 
-  void draw(int width, int height, double time) {
-    glViewport(0, 0, width, height);
-    assert(gl_good());
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    assert(gl_good());
     glUseProgram(program);
-    assert(gl_good());
-    glUniform1f(location_time, time);
-    assert(gl_good());
-    glUniform2f(location_size, width, height);
-    assert(gl_good());
-
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    assert(gl_good());
   }
 
   bool compile(const char* fragment_shader_text, std::string& error) {
@@ -126,8 +132,6 @@ class Toy {
       return false;
     }
 
-    // XXX maybe delete program?
-
     auto program = glCreateProgram();
     glAttachShader(program, vertex_shader);
     glAttachShader(program, fragment_shader);
@@ -137,55 +141,47 @@ class Toy {
       return false;
     }
 
-    auto location_attribute_position = glGetAttribLocation(program, "position");
-    if (location_attribute_position == -1) {
-      // XXX this should never happen
-      exit(1);
-      error += "Could not find 'position' attribute\n";
-      fprintf(stderr, "Error: no position attribute\n");
-      return false;
-    }
-    glEnableVertexAttribArray(location_attribute_position);
-    glVertexAttribPointer(location_attribute_position, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(vertices[0]), (void*)0);
+    glDeleteShader(fragment_shader);
 
-    auto location_time = glGetUniformLocation(program, "time");
-    auto location_size = glGetUniformLocation(program, "size");
+    auto uniform_time = glGetUniformLocation(program, "u_time");
+    auto uniform_size = glGetUniformLocation(program, "u_size");
 
     if (gl_good()) {
       // this new shader is good; overwrite the old stuff
+      glDeleteProgram(this->program);
+      glUseProgram(program);
       this->program = program;
-      this->fragment_shader = fragment_shader;
-      this->location_attribute_position = location_attribute_position;
-      this->location_time = location_time;
-      this->location_size = location_size;
+      this->uniform_time = uniform_time;
+      this->uniform_size = uniform_size;
       return true;
     }
 
     error += "Unknown error\n";
     return false;
   }
+
+  void draw(int width, int height, double time) {
+    glViewport(0, 0, width, height);
+    assert(gl_good());
+    glClear(GL_COLOR_BUFFER_BIT);
+    assert(gl_good());
+
+    // which uniforms must be set on every draw call?
+    // - time
+    // - width and height (on the desktop)
+
+    glUniform1f(uniform_time, time);
+    assert(gl_good());
+    glUniform2f(uniform_size, width, height);
+    assert(gl_good());
+
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    assert(gl_good());
+  }
 };
 
 int main(int argc, char* argv[]) {
   auto begining = std::chrono::steady_clock::now();
-
-  Conf conf;
-  if (!conf.load()) {
-    printf("No configuration loaded\n");
-  }
-
-  // if we are on the pi, load a config file that
-  // determines uniforms and such
-  {
-    std::string mac;
-    std::ifstream file("/sys/class/net/eth0/address");
-    if (file.is_open()) {
-      if (std::getline(file, mac)) {
-        printf("got mac address %s\n", mac.c_str());
-      }
-    }
-  }
 
   lo::ServerThread server(
       7770, [](int n, const char* message, const char* where) {
