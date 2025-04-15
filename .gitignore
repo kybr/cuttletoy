@@ -3,3 +3,4 @@ cuttletoy
 .vscode
 *.o
 *.conf
+.DS_Store
