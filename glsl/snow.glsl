@@ -1,6 +1,5 @@
 uniform float u_time;
 uniform vec2 u_size;
-
 float rand(float x) { return fract(sin(x) * 100000.0); }
 void main() {
   float index = gl_FragCoord.x + gl_FragCoord.y * u_size.x;

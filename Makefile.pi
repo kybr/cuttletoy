@@ -1,5 +1,5 @@
 
-toy: toy.o RPI1.o
+toy: toy.o RPI1.o Conf.o
 	$(CC) \
 		-o toy \
 		-Wl,--whole-archive \
