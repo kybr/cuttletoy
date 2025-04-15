@@ -1,0 +1,3 @@
+[submodule ".vscode/extensions/cuttletoy"]
+	path = .vscode/extensions/cuttletoy
+	url = https://github.com/kybr/cuttletoy.vscode
