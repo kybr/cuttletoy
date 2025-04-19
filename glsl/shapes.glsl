@@ -1,6 +1,8 @@
 uniform vec2 u_size;
 uniform float u_time;
 
+// https://iquilezles.org/articles/distfunctions2d
+
 float opUnion(float d1, float d2) { return min(d1, d2); }
 float opSubtraction(float d1, float d2) { return max(-d1, d2); }
 float opIntersection(float d1, float d2) { return max(d1, d2); }
@@ -45,6 +47,12 @@ void main() {
   vec2 p = (2.0 * gl_FragCoord.xy - u_size.xy) / u_size.y;
 
   //float d = opOnion(sdCircle(p, fract(u_time / 100.0)), 0.2);
+
+  // XXX show...
+  // - translation
+  // - rotation
+  // - combining
+  // - animation
 
   float d = sdOrientedBox(p, vec2(sin(u_time), cos(u_time)), vec2(0.5, -0.5), 0.1);
   d = opSmoothUnion(d, sdCircle(p, 0.2), 0.1);

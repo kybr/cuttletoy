@@ -10,3 +10,5 @@ ERROR:CUSTOM-28 (vertex shader, line 1) Incorrect #version
 I removed the `#version` line
 
 
+
+https://github.com/madskjeldgaard/faust-nvim/blob/main/lua/faust-nvim.lua

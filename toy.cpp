@@ -9,6 +9,7 @@
 #include <chrono>
 #include <cstring>
 #include <iostream>
+#include <thread>
 
 #include "Conf.hpp"
 #include "GL.h"
@@ -194,7 +195,7 @@ int main(int argc, char* argv[]) {
   char fragment[65000];
 
   lo::Address* remote = nullptr;
-  server.add_method("/frag", "s", [&](lo_arg** argv, int, lo::Message m) {
+  server.add_method("/f", "s", [&](lo_arg** argv, int, lo::Message m) {
     if (remote) {
       delete remote;
     }
@@ -213,17 +214,39 @@ int main(int argc, char* argv[]) {
   Toy toy;
 
   auto then = std::chrono::steady_clock::now();
+
+  int framecount = 0;
+
+  bool running = true;
+
+  std::thread sendfps([&]() {
+    lo::Address them("localhost", 7777);
+    while (running) {
+      them.send("/fps", "i", framecount);
+      printf("FPS: %d\n", framecount);
+      fflush(stdout);
+      framecount = 0;
+      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    }
+  });
+
   while (!window.done()) {
     auto now = std::chrono::steady_clock::now();
 
     if (hasNewFrag) {
       hasNewFrag = false;
       std::string error;
+      auto tic = std::chrono::steady_clock::now();
       if (!toy.compile(fragment, error)) {
         if (remote) {
           remote->send("/err", "s", error.c_str());
         }
       }
+      printf(
+          "fragment compile took %.3lf ms\n",
+          std::chrono::duration<double>(std::chrono::steady_clock::now() - tic)
+                  .count() *
+              1000);
     }
 
     int width, height;
@@ -236,6 +259,10 @@ int main(int argc, char* argv[]) {
     double dt = std::chrono::duration<double>(now - then).count();
     then = now;
     double fps = 1 / dt;
-    // printf("FPS: %.1lf delta: %.3lf\n", fps, dt);
+
+    framecount++;
   }
+
+  running = false;
+  sendfps.join();
 }
