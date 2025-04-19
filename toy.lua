@@ -9,6 +9,7 @@
 local socket = nil
 
 local remote = { address = "127.0.0.1", port = 7770 }
+local port = 7771
 
 --------------------------------------------------------------------------------
 -- Listen for buffer changes; Spurt contents via UDP ---------------------------
@@ -42,7 +43,7 @@ local function send_code()
             vim.print("failed to create udp socket")
             return
         end
-        local bind = socket:bind("0.0.0.0", 10001);
+        local bind = socket:bind("0.0.0.0", port);
         if (bind == nil) then
             vim.print("failed to bind udp socket")
             return
@@ -54,7 +55,7 @@ local function send_code()
             return
         end
         socket:recv_start(receive)
-        vim.print("listening on 10001")
+        vim.print("listening on " .. port)
     end
 
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
