@@ -8,12 +8,25 @@
 
 local socket = nil
 
-local remote = { address = "127.0.0.1", port = 7770 }
-local port = 7771
+local remote_port = 7770
+local listen_port = 7771
 
 --------------------------------------------------------------------------------
 -- Listen for buffer changes; Spurt contents via UDP ---------------------------
 --------------------------------------------------------------------------------
+
+local function on_network()
+    local interface = uv.interface_addresses()
+    for i in pairs(interface) do
+        for k in pairs(interface[i]) do
+            local ip = interface[i][k].ip
+            if (ip:find("192.168.7.")) then
+                return true
+            end
+        end
+    end
+    return false
+end
 
 --local count = 0
 local function receive(err, data, addr, flags)
@@ -43,7 +56,7 @@ local function send_code()
             vim.print("failed to create udp socket")
             return
         end
-        local bind = socket:bind("0.0.0.0", port);
+        local bind = socket:bind("0.0.0.0", listen_port);
         if (bind == nil) then
             vim.print("failed to bind udp socket")
             return
@@ -55,7 +68,7 @@ local function send_code()
             return
         end
         socket:recv_start(receive)
-        vim.print("listening on " .. port)
+        vim.print("listening on " .. listen_port)
     end
 
     local lines = vim.api.nvim_buf_get_lines(0, 0, -1, true)
@@ -74,8 +87,13 @@ local function send_code()
     end
 
     local header = "/f\0\0,s\0\0"
-    local bytes = socket:try_send(header .. text, remote.address, remote.port)
-    if (bytes < 0) then
+
+    if (0 > socket:try_send(header .. text, "127.0.0.1", remote_port)) then
+        vim.print("failed send buffer")
+        return
+    end
+
+    if (0 > socket:try_send(header .. text, "192.168.7.255", remote_port)) then
         vim.print("failed send buffer")
         return
     end
