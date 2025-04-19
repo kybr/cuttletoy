@@ -6,9 +6,15 @@
 
 #include <lo/lo.h>
 
-int main() {
+
+
+int main(int argc, char* argv[]) {
+  if (argc != 2) {
+    printf("No device given\n");
+    exit(1);
+  }
   int fd;
-  if ((fd = open("/dev/input/event0", O_RDONLY)) < 0) {
+  if ((fd = open(argv[1], O_RDONLY)) < 0) {
     perror("Cannot find device");
     return 1;
   }
@@ -23,7 +29,11 @@ int main() {
       break;
     }
     
-    //printf("type:%d code:%d value:%d\n", event.type, event.code, event.value);
+    if (event.type == EV_SYN) {
+      continue;
+    }
+
+    printf("type:%d code:%d value:%d\n", event.type, event.code, event.value);
 
     if (event.type == EV_KEY) {
       int result = 0;
