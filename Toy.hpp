@@ -1,26 +1,29 @@
-// #define NDEBUG
-
+#pragma once
 #include <cassert>
-// <cassert> must come before liblo on the pi
-
-#include <lo/lo.h>
-#include <lo/lo_cpp.h>
-
-#include <chrono>
-#include <cstring>
-#include <iostream>
-#include <thread>
+#include <string>
 
 #include "Conf.hpp"
 #include "GL.h"
 #include "Help.hpp"
+#include "Toy.hpp"
 #include "Window.hpp"
 
 static const struct {
   float x, y;
 } vertices[4] = {{-1.0, -1.0}, {-1.0, 1.0}, {1.0, 1.0}, {1.0, -1.0}};
 
+struct vec2 {
+  float x, y;
+};
+struct vec3 {
+  float x, y, z;
+};
+struct vec4 {
+  float x, y, z, w;
+};
+
 class Toy {
+  Window window;
   GLuint program;
   GLuint vertex_shader;
   GLint location_attribute_position;
@@ -30,27 +33,41 @@ class Toy {
   GLint uniform_time;
   GLint uniform_size;
   GLint uniform_screen;
-  GLint uniform_screen_maximum;
-  GLint uniform_pixel_offset;
-  GLint uniform_pixel_offset_maximum;
-  GLint uniform_parameter;
+  GLint uniform_analog_left;
+  GLint uniform_analog_right;
+  GLint uniform_hat;
+  GLint uniform_button;
+  GLint uniform_random;
 
-  // 
-  //
-  //
+  // float u_time; // xy is which screen; z is id, where -1 means not a screen
+  // vec3 u_screen; // xy is which screen; z is id (-1, 15) where -1 means not a
+  // pi
+  // vec3 u_analog_left;  // xy is joystick; z is trigger vec3 u_analog_right;
+  // vec2 u_hat; // x and y are (-1, 0, 1)
+  // vec4 u_button; // x, y, z, w are buttons (0, 1)
+  // vec4 u_random; // random values
 
   Conf conf;
-  bool running_on_pi = false;
 
  public:
-  void load_conf_uniforms() {}
-  void send_conf_uniforms() {}
+  float u_time = 0.0f;
+  vec3 u_screen = {0.0f, 0.0f, -1.0f};
+  vec3 u_analog_left = {0.0f, 0.0f, 0.0f};
+  vec3 u_analog_right = {0.0f, 0.0f, 0.0f};
+  vec2 u_hat = {0.0f, 0.0f};
+  vec4 u_button = {0.0f, 0.0f, 0.0f, 0.0f};
+  vec4 u_random = {0.0f, 0.0f, 0.0f, 0.0f};
 
   Toy() {
     if (conf.load()) {
-      conf.show();
-      running_on_pi = true;
+      printf("toy.conf loaded\n");
     }
+    conf.show();
+
+    // these never change
+    u_screen.x = conf.x_screen;
+    u_screen.y = conf.y_screen;
+    u_screen.z = conf.id;
 
     auto vertex_string = slurp("vertex.glsl");
     const char* vertex_shader_text = vertex_string.c_str();
@@ -123,6 +140,13 @@ class Toy {
 
     uniform_time = glGetUniformLocation(program, "u_time");
     uniform_size = glGetUniformLocation(program, "u_size");
+    uniform_screen = glGetUniformLocation(program, "u_screen");
+    uniform_analog_left = glGetUniformLocation(program, "u_analog_left");
+    uniform_analog_right = glGetUniformLocation(program, "u_analog_right");
+    uniform_hat = glGetUniformLocation(program, "u_hat");
+    uniform_button = glGetUniformLocation(program, "u_button");
+    uniform_random = glGetUniformLocation(program, "u_random");
+
     assert(gl_good());
 
     glUseProgram(program);
@@ -150,6 +174,12 @@ class Toy {
 
     auto uniform_time = glGetUniformLocation(program, "u_time");
     auto uniform_size = glGetUniformLocation(program, "u_size");
+    auto uniform_screen = glGetUniformLocation(program, "u_screen");
+    auto uniform_analog_left = glGetUniformLocation(program, "u_analog_left");
+    auto uniform_analog_right = glGetUniformLocation(program, "u_analog_right");
+    auto uniform_hat = glGetUniformLocation(program, "u_hat");
+    auto uniform_button = glGetUniformLocation(program, "u_button");
+    auto uniform_random = glGetUniformLocation(program, "u_random");
 
     if (gl_good()) {
       // this new shader is good; overwrite the old stuff
@@ -158,6 +188,12 @@ class Toy {
       this->program = program;
       this->uniform_time = uniform_time;
       this->uniform_size = uniform_size;
+      this->uniform_screen = uniform_screen;
+      this->uniform_analog_left = uniform_analog_left;
+      this->uniform_analog_right = uniform_analog_right;
+      this->uniform_hat = uniform_hat;
+      this->uniform_button = uniform_button;
+      this->uniform_random = uniform_random;
       return true;
     }
 
@@ -165,7 +201,10 @@ class Toy {
     return false;
   }
 
-  void draw(int width, int height, double time) {
+  void draw(double time) {
+    int width, height;
+    window.size(width, height);
+
     glViewport(0, 0, width, height);
     assert(gl_good());
     glClear(GL_COLOR_BUFFER_BIT);
@@ -180,93 +219,20 @@ class Toy {
     glUniform2f(uniform_size, width, height);
     assert(gl_good());
 
+    glUniform3f(uniform_screen, u_screen.x, u_screen.y, u_screen.z);
+    glUniform3f(uniform_analog_left, u_analog_left.x, u_analog_left.y,
+                u_analog_left.z);
+    glUniform3f(uniform_analog_right, u_analog_right.x, u_analog_right.y,
+                u_analog_right.z);
+    glUniform2f(uniform_hat, u_hat.x, u_hat.y);
+    glUniform4f(uniform_button, u_button.x, u_button.y, u_button.z, u_button.w);
+    glUniform4f(uniform_random, u_random.x, u_random.y, u_random.z, u_random.w);
+
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     assert(gl_good());
-  }
-};
 
-int main(int argc, char* argv[]) {
-  auto begining = std::chrono::steady_clock::now();
-
-  lo::ServerThread server(
-      7770, [](int n, const char* message, const char* where) {
-        std::cout << "ERROR: " << message << "(" << where << ")" << std::endl;
-        fflush(stdout);
-      });
-  assert(server.is_valid());
-
-  bool hasNewFrag = false;
-  char fragment[65000];
-
-  lo::Address* remote = nullptr;
-  server.add_method("/f", "s", [&](lo_arg** argv, int, lo::Message m) {
-    if (remote) {
-      delete remote;
-    }
-    remote = new lo::Address(m.source().hostname(), 7771);
-
-    strncpy(fragment, &argv[0]->s, sizeof(fragment));
-    hasNewFrag = true;
-
-    printf("fragment is %d bytes\n", (int)strlen(fragment));
-    fflush(stdout);
-  });
-
-  server.start();
-
-  Window window;
-  Toy toy;
-
-  auto then = std::chrono::steady_clock::now();
-
-  int framecount = 0;
-
-  bool running = true;
-
-  std::thread sendfps([&]() {
-    lo::Address them("localhost", 7777);
-    while (running) {
-      them.send("/fps", "i", framecount);
-      printf("FPS: %d\n", framecount);
-      fflush(stdout);
-      framecount = 0;
-      std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    }
-  });
-
-  while (!window.done()) {
-    auto now = std::chrono::steady_clock::now();
-
-    if (hasNewFrag) {
-      hasNewFrag = false;
-      std::string error;
-      auto tic = std::chrono::steady_clock::now();
-      if (!toy.compile(fragment, error)) {
-        if (remote) {
-          remote->send("/err", "s", error.c_str());
-        }
-      }
-      printf(
-          "fragment compile took %.3lf ms\n",
-          std::chrono::duration<double>(std::chrono::steady_clock::now() - tic)
-                  .count() *
-              1000);
-    }
-
-    int width, height;
-    window.size(width, height);
-
-    double time = std::chrono::duration<double>(now - begining).count();
-    toy.draw(width, height, time);
     window.swap();
-
-    double dt = std::chrono::duration<double>(now - then).count();
-    then = now;
-    double fps = 1 / dt;
-
-    framecount++;
   }
 
-  running = false;
-  sendfps.join();
-}
+  bool done() { return window.done(); }
+};

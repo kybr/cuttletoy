@@ -12,12 +12,15 @@ LIBRARY+= -L /opt/homebrew/lib
 LIBRARY+= -llo
 LIBRARY+= -lglfw
 
-toy: toy.o GLFW.o Conf.o
-	$(CC) toy.o GLFW.o Conf.o -o toy $(LIBRARY) -framework OpenGL
+toy : main.o GLFW.o Conf.o
+	$(CC) main.o GLFW.o Conf.o -o toy $(LIBRARY) -framework OpenGL
 	./toy
 
-toy.o : toy.cpp
-	$(CC) -c toy.cpp $(INCLUDE) -Wno-deprecated-declarations
+main.o : main.cpp Toy.hpp
+	$(CC) -c main.cpp $(INCLUDE) -Wno-deprecated-declarations
+
+#toy.o : Toy.hpp
+#	$(CC) -c Toy.hpp $(INCLUDE) -Wno-deprecated-declarations
 
 GLFW.o : GLFW.cpp Window.hpp
 	$(CC) -c GLFW.cpp $(INCLUDE)

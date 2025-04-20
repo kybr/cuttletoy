@@ -40,19 +40,14 @@ bool Conf::load() {
         // for (auto& e : entry) {
         //   printf("%s\n", e.c_str());
         // }
-        if (entry.size() != 9) {
+        if (entry.size() != 4) {
           printf("Wrong number of records in 'toy.conf'\n");
           return false;
         }
         try {
           x_screen = std::stoi(entry[1]);
           y_screen = std::stoi(entry[2]);
-          x_screen_maximum = std::stoi(entry[3]);
-          y_screen_maximum = std::stoi(entry[4]);
-          x_pixel_offset = std::stoi(entry[5]);
-          y_pixel_offset = std::stoi(entry[6]);
-          x_pixel_offset_maximum = std::stoi(entry[7]);
-          y_pixel_offset_maximum = std::stoi(entry[8]);
+          id = std::stoi(entry[2]);
         } catch (...) {
           printf("Problem with 'toy.conf'\n");
           return false;
@@ -65,8 +60,10 @@ bool Conf::load() {
 }
 
 void Conf::show() {
-  printf("screen: (%d,%d) of (%d,%d)\n", x_screen, y_screen, x_screen_maximum,
-         y_screen_maximum);
-  printf("pixel offset: (%d,%d) of (%d,%d)\n", x_pixel_offset, y_pixel_offset,
-         x_pixel_offset_maximum, y_pixel_offset_maximum);
+  if (id < 0) {
+    printf("Not running on any pi\n");
+  }
+  else {
+    printf("Running on pi %d ... column%d row%d\n", id, x_screen, y_screen);
+  }
 }
