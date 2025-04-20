@@ -1,12 +1,9 @@
-#include <fcntl.h> // open
-#include <stdio.h> // perror
-#include <linux/input.h> // struct input_event
-#include <unistd.h> // read
-#include <stdlib.h> // exit
-
+#include <fcntl.h>        // open
+#include <linux/input.h>  // struct input_event
 #include <lo/lo.h>
-
-
+#include <stdio.h>   // perror
+#include <stdlib.h>  // exit
+#include <unistd.h>  // read
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
@@ -28,7 +25,7 @@ int main(int argc, char* argv[]) {
       perror("Fail to read complete event");
       break;
     }
-    
+
     if (event.type == EV_SYN) {
       continue;
     }
@@ -38,25 +35,47 @@ int main(int argc, char* argv[]) {
     if (event.type == EV_KEY) {
       int result = 0;
       switch (event.code) {
-        case 304: result = lo_send(t, "/button/south", "i", event.value); break;
-        case 305: result = lo_send(t, "/button/east", "i", event.value); break;
-        case 307: result = lo_send(t, "/button/north", "i", event.value); break;
-        case 308: result = lo_send(t, "/button/west", "i", event.value); break;
-        case 310: result = lo_send(t, "/button/tl", "i", event.value); break;
-        case 311: result = lo_send(t, "/button/tr", "i", event.value); break;
-        case 317: result = lo_send(t, "/button/thumbl", "i", event.value); break;
-        case 318: result = lo_send(t, "/button/thumbr", "i", event.value); break;
-        case 314: result = lo_send(t, "/button/select", "i", event.value); break;
-        case 315: result = lo_send(t, "/button/start", "i", event.value); break;
-        case 316: result = lo_send(t, "/button/mode", "i", event.value); break;
+        case 304:
+          result = lo_send(t, "/button/south", "i", event.value);
+          break;
+        case 305:
+          result = lo_send(t, "/button/east", "i", event.value);
+          break;
+        case 307:
+          result = lo_send(t, "/button/north", "i", event.value);
+          break;
+        case 308:
+          result = lo_send(t, "/button/west", "i", event.value);
+          break;
+        case 310:
+          result = lo_send(t, "/button/tl", "i", event.value);
+          break;
+        case 311:
+          result = lo_send(t, "/button/tr", "i", event.value);
+          break;
+        case 317:
+          result = lo_send(t, "/button/thumbl", "i", event.value);
+          break;
+        case 318:
+          result = lo_send(t, "/button/thumbr", "i", event.value);
+          break;
+        case 314:
+          result = lo_send(t, "/button/select", "i", event.value);
+          break;
+        case 315:
+          result = lo_send(t, "/button/start", "i", event.value);
+          break;
+        case 316:
+          result = lo_send(t, "/button/mode", "i", event.value);
+          break;
         default:
-	  printf("Bad event code\n");
-	  exit(1);
+          printf("Bad event code\n");
+          exit(1);
           break;
       }
       if (result == -1) {
         printf("OSC error %d: %s\n", lo_address_errno(t), lo_address_errstr(t));
-	exit(1);
+        exit(1);
       }
     }
 
@@ -67,31 +86,48 @@ int main(int argc, char* argv[]) {
         // Flat     128
         // Min   -32768
         // Max    32767
-	case 0: result = lo_send(t, "/stick/x", "f", event.value / 32768.0f); break;
-        case 1: result = lo_send(t, "/stick/y", "f", event.value / 32768.0f); break;
-        case 3: result = lo_send(t, "/stick/rx", "f", event.value / 32768.0f); break;
-        case 4: result = lo_send(t, "/stick/ry", "f", event.value / 32768.0f); break;
+        case 0:
+          result = lo_send(t, "/stick/x", "f", event.value / 32768.0f);
+          break;
+        case 1:
+          result = lo_send(t, "/stick/y", "f", event.value / 32768.0f);
+          break;
+        case 3:
+          result = lo_send(t, "/stick/rx", "f", event.value / 32768.0f);
+          break;
+        case 4:
+          result = lo_send(t, "/stick/ry", "f", event.value / 32768.0f);
+          break;
 
-	
-	case 2: result = lo_send(t, "/trigger/z", "f", event.value / 1023.0f); break;
-	case 5: result = lo_send(t, "/trigger/rz", "f", event.value / 1023.0f); break;
+        case 2:
+          result = lo_send(t, "/trigger/z", "f", event.value / 1023.0f);
+          break;
+        case 5:
+          result = lo_send(t, "/trigger/rz", "f", event.value / 1023.0f);
+          break;
 
         // Value      0
         // Min       -1
         // Max        1
-	case 16: result = lo_send(t, "/hat/x", "i", event.value); break;
-	case 17: result = lo_send(t, "/hat/y", "i", event.value); break;
-
-	default:
-	  break;
+        case 16:
+          result = lo_send(t, "/hat/x", "i", event.value);
+          break;
+        case 17:
+          result = lo_send(t, "/hat/y", "i", event.value);
+          break;
+        default:
+          printf("Bad event code\n");
+          exit(1);
+          break;
       }
       if (result == -1) {
         printf("OSC error %d: %s\n", lo_address_errno(t), lo_address_errstr(t));
-	exit(1);
+        exit(1);
       }
     }
   }
 }
+
 /*
 Input driver version is 1.0.1
 Input device ID: bus 0x3 vendor 0x45e product 0x2ea version 0x301

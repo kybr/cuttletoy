@@ -35,6 +35,10 @@ class Toy {
   GLint uniform_pixel_offset_maximum;
   GLint uniform_parameter;
 
+  // 
+  //
+  //
+
   Conf conf;
   bool running_on_pi = false;
 
