@@ -13,7 +13,7 @@ end
 
 -- these fail
 print(socket:send_buffer_size())
-print(socket:send_buffer_size(11000))
+print(socket:send_buffer_size(65000))
 print(socket:send_buffer_size())
 
 local bytes = socket:try_send("message", "127.0.0.1", 9999)
@@ -24,13 +24,13 @@ end
 
 -- but, after the try_send these at least print numbers
 print(socket:send_buffer_size())
-print(socket:send_buffer_size(11000))
+print(socket:send_buffer_size(65000))
 print(socket:send_buffer_size())
 
 -- but setting the send buffer size seems to fail
 
 local message = ''
-for i = 1,11000,1 do
+for i = 1,65000,1 do
     message = message .. 'o'
 end
 

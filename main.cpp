@@ -4,7 +4,9 @@
 // <cassert> must come before liblo on the pi
 
 #include <lo/lo.h>
-#include <lo/lo_cpp.h>
+
+#include "lo_cpp_modified.h"
+// #include <lo/lo_cpp.h>
 
 #include <chrono>
 #include <cstring>
@@ -19,7 +21,7 @@ int main(int argc, char* argv[]) {
   Toy toy;
 
   lo::ServerThread server(
-      7770, [](int n, const char* message, const char* where) {
+      "224.0.7.23", "7770", [](int n, const char* message, const char* where) {
         std::cout << "ERROR: " << message << "(" << where << ")" << std::endl;
         fflush(stdout);
       });

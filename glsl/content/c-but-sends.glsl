@@ -1,3 +1,4 @@
+
 uniform float u_time;
 uniform vec2 u_size;
 uniform vec3 u_screen;
@@ -6,11 +7,6 @@ uniform vec3 u_analog_right;
 uniform vec2 u_hat;
 uniform vec4 u_button;
 uniform vec4 u_random;
-
-// XXX for some reason, ths file will not send. according to wireshark
-// it never leaves visual studio code. a hacked-down version of this file
-// does send.
-// 
 
 vec2 pixel() {
   vec2 p = gl_FragCoord.xy;
@@ -30,13 +26,6 @@ vec2 pixel() {
   return p;
 }
 
-int state = 0;
-float rnd() {
-  state += 12345;
-  state *= 1103515245;  // overflow
-  return float(state) / 4294967296.0;
-}
-
 vec2 rotate(vec2 v, float a) {
   float s = sin(a);
   float c = cos(a);
@@ -50,39 +39,19 @@ vec2 pol2cart(vec2 p) {
   return vec2(p.x * cos(p.y * M_PI), p.x * sin(p.y * M_PI));
 }
 
-float circle(vec2 p, float r, float t) {
-  float l = r - length(p);
-  if (abs(l) < t) {
-    return 1.0;
-  }
-  return 0.0;
-}
-
-float within(vec2 p, vec2 c, float r) {
-  return (distance(p, c) < r) ? 1.0 : 0.0;
-}
-
 void main() {
-  vec2 pixel = (2.0 * gl_FragCoord.xy - u_size.xy) / u_size.y;
-  pixel = rotate(pixel, u_time);
-
-  pixel += vec2(0.1);  // offset
-  pixel *= 0.7;        // zoom
+  vec2 p = pixel();
+  p = rotate(p, u_time);
 
   vec3 color = vec3(1.0);
 
-  int N = 19;
-  float t_ = 0.0;
+  #define N 7 // 7 and we get GL_OUT_OF_MEMORY on the pis
   for (int i = 0; i < N; i++) {
     float t = float(i) / float(N - 1);
     float radius = 0.05 + t;
-    // t * (1.0 - t) ... is an "ah ha" moment
-    // it makes the deviation small when the
-    // circles are small or large, but in between
-    // they deviate a lot
     float magnitude = t * (1.0 - t);
     float angle = t * sin(u_time * 0.3);
-    if (distance(pixel, pol2cart(vec2(magnitude, angle))) < radius) {
+    if (distance(p, pol2cart(vec2(magnitude, angle))) < radius) {
       color = 1.0 - vec3(mod(float(i), 2.0));
       if (i == 2 * int(mod(u_time * 3.0, 10.0))) {
         color = vec3(1.0, 0.0, 0.0);
@@ -90,10 +59,5 @@ void main() {
       break;
     }
   }
-
-  if (length(pixel) > 1.1) {
-    color = vec3(0.0);
-  }
-
   gl_FragColor = vec4(color, 1.0);
 }

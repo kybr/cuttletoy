@@ -9,12 +9,12 @@ uniform vec4 u_random;
 
 void main() {
   vec2 pixel = gl_FragCoord.xy;
-  float color = 1.0;
-  if (pixel.x > 100.0) {
-    color = 0.0;
+  float color = 0.0;
+  if (int(pixel.x) == int(u_size.x) / 2) {
+    color = 1.0;
   }
-  if (pixel.y > 100.0) {
-    color = 0.0;
+  if (int(pixel.y) == int(u_size.y) / 2) {
+    color = 1.0;
   }
   gl_FragColor = vec4(vec3(color), 1);
 }

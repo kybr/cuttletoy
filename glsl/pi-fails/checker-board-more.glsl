@@ -7,8 +7,6 @@ uniform vec2 u_hat;
 uniform vec4 u_button;
 uniform vec4 u_random;
 
-// XXX this one seems to work on the pis
-
 vec2 pixel() {
   vec2 p = gl_FragCoord.xy;
   if (u_screen.z == 0.0) {
@@ -27,26 +25,14 @@ vec2 pixel() {
   return p;
 }
 
-#define M_PI 3.1415926535897932384626433832795
-
-vec2 car2polar(vec2 p) {
-  float r = length(p);
-  float theta = atan(p.y, p.x);
-  return vec2(r, theta / M_PI);
-}
-
 void main() {
-  vec2 uv = pixel();
-
-  vec2 polar = car2polar(uv);
-
-  float N = 10.0;
-  float strip = floor(polar.y * N + polar.x * N - u_time / 1.0);
-  float color = mod(strip, 2.0);
-  if (mod(strip, N) == 2.0) {
-    gl_FragColor = vec4(vec3(1.0, 0.0, 0.0), 1.0);
-    return;
-  }
+  vec2 p = pixel();
   
-  gl_FragColor = vec4(vec3(color), 1.0);
+  p += u_analog_left.xy;
+
+  //p = vec2(ivec2(p * 10.0));
+  p = floor(p * 5.0);
+  //p.x *= -1.0;
+  float pattern = mod(p.x + mod(p.y + 0.01, 2.0), 2.0);
+  gl_FragColor = vec4(vec3(pattern), 1.0);
 }

@@ -8,13 +8,10 @@ uniform vec4 u_button;
 uniform vec4 u_random;
 
 void main() {
-  vec2 pixel = gl_FragCoord.xy;
-  float color = 1.0;
-  if (pixel.x > 100.0) {
-    color = 0.0;
+  if (u_screen.z < 0.0) {
+    gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    return;
   }
-  if (pixel.y > 100.0) {
-    color = 0.0;
-  }
-  gl_FragColor = vec4(vec3(color), 1);
+  float t = u_screen.z / 16.0;
+  gl_FragColor = vec4(vec3(1.0 - t), 1.0);
 }

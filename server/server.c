@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  lo_address t = lo_address_new("255.255.255.255", "7770");
+  lo_address t = lo_address_new("224.0.7.23", "7770");
 
   struct input_event event;
 
