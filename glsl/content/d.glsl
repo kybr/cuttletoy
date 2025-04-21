@@ -42,7 +42,7 @@ float noise(vec2 st) {
 
 void main() {
   vec2 st = pixel();
-  vec2 pos = vec2(st * 2.0);
+  vec2 pos = vec2(st * 1.0);
   float n = noise(pos);
   n = floor(n * 30.0);
   if (n == 2.0) {
