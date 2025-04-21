@@ -16,12 +16,51 @@
 int main(int argc, char* argv[]) {
   auto begining = std::chrono::steady_clock::now();
 
+  Toy toy;
+
   lo::ServerThread server(
       7770, [](int n, const char* message, const char* where) {
         std::cout << "ERROR: " << message << "(" << where << ")" << std::endl;
         fflush(stdout);
       });
   assert(server.is_valid());
+
+  server.add_method(
+      "/button/south", "i",
+      [&](lo_arg** argv, int, lo::Message m) { toy.u_button.x = argv[0]->i; });
+  server.add_method(
+      "/button/east", "i",
+      [&](lo_arg** argv, int, lo::Message m) { toy.u_button.y = argv[0]->i; });
+  server.add_method(
+      "/button/north", "i",
+      [&](lo_arg** argv, int, lo::Message m) { toy.u_button.z = argv[0]->i; });
+  server.add_method(
+      "/button/west", "i",
+      [&](lo_arg** argv, int, lo::Message m) { toy.u_button.w = argv[0]->i; });
+  server.add_method("/hat/x", "i", [&](lo_arg** argv, int, lo::Message m) {
+    toy.u_hat.x = argv[0]->i;
+  });
+  server.add_method("/hat/y", "i", [&](lo_arg** argv, int, lo::Message m) {
+    toy.u_hat.y = argv[0]->i;
+  });
+  server.add_method("/stick/x", "f", [&](lo_arg** argv, int, lo::Message m) {
+    toy.u_analog_left.x = argv[0]->f;
+  });
+  server.add_method("/stick/y", "f", [&](lo_arg** argv, int, lo::Message m) {
+    toy.u_analog_left.y = argv[0]->f;
+  });
+  server.add_method("/stick/rx", "f", [&](lo_arg** argv, int, lo::Message m) {
+    toy.u_analog_right.x = argv[0]->f;
+  });
+  server.add_method("/stick/ry", "f", [&](lo_arg** argv, int, lo::Message m) {
+    toy.u_analog_right.y = argv[0]->f;
+  });
+  server.add_method("/trigger/z", "f", [&](lo_arg** argv, int, lo::Message m) {
+    toy.u_analog_left.z = argv[0]->f;
+  });
+  server.add_method("/trigger/rz", "f", [&](lo_arg** argv, int, lo::Message m) {
+    toy.u_analog_right.z = argv[0]->f;
+  });
 
   bool hasNewFrag = false;
   char fragment[65000];
@@ -41,8 +80,6 @@ int main(int argc, char* argv[]) {
   });
 
   server.start();
-
-  Toy toy;
 
   auto then = std::chrono::steady_clock::now();
 
