@@ -47,7 +47,7 @@ bool Conf::load() {
         try {
           x_screen = std::stoi(entry[1]);
           y_screen = std::stoi(entry[2]);
-          id = std::stoi(entry[2]);
+          id = std::stoi(entry[3]);
         } catch (...) {
           printf("Problem with 'toy.conf'\n");
           return false;
