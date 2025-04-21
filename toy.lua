@@ -14,7 +14,7 @@ local listen_port = 7771
 
 --[[
 local function on_network()
-    local interface = uv.interface_addresses()
+    local interface = vim.uv.interface_addresses()
     for i in pairs(interface) do
         for k in pairs(interface[i]) do
             local ip = interface[i][k].ip
@@ -53,6 +53,13 @@ local function receive(err, data, addr, flags)
 end
 
 local function send_code()
+    -- necessary for old version of neovim
+    if (vim.print == nil) then
+        vim.print = print;
+    end
+    if (vim.uv == nil) then
+        vim.uv = vim.loop;
+    end
     if (socket == nil) then
         socket = vim.uv.new_udp()
         if (socket == nil) then
