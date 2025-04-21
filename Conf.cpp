@@ -60,7 +60,7 @@ bool Conf::load() {
 }
 
 void Conf::show() {
-  if (id < 0) {
+  if (id == 0) {
     printf("Not running on any pi\n");
   }
   else {
