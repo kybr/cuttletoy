@@ -44,7 +44,7 @@ void main() {
   vec2 st = pixel();
   vec2 pos = vec2(st * 1.0);
   float n = noise(pos);
-  n = floor(n * 30.0);
+  n = floor(n * 20.0);
   if (n == 2.0) {
     gl_FragColor = vec4(vec3(1.0, 0.0, 0.0), 1.0);
     return;

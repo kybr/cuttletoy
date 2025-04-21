@@ -7,11 +7,6 @@ uniform vec2 u_hat;
 uniform vec4 u_button;
 uniform vec4 u_random;
 
-// XXX for some reason, ths file will not send. according to wireshark
-// it never leaves visual studio code. a hacked-down version of this file
-// does send.
-// 
-
 vec2 pixel() {
   vec2 p = gl_FragCoord.xy;
   if (u_screen.z == 0.0) {
