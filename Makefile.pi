@@ -1,9 +1,9 @@
 
-toy: toy.o RPI1.o Conf.o
+toy: main.o RPI1.o Conf.o
 	$(CC) \
 		-o toy \
 		-Wl,--whole-archive \
-		toy.o \
+		main.o \
 		Conf.o \
 		RPI1.o \
 		-lrevision \
@@ -24,7 +24,7 @@ toy: toy.o RPI1.o Conf.o
 		-Wl,--no-whole-archive \
 		-rdynamic
 
-toy.o : toy.cpp
+main.o : main.cpp Toy.hpp
 	$(CC) \
 		-D__RPI1__ \
 		-DSTANDALONE \
@@ -58,8 +58,8 @@ toy.o : toy.cpp
 		-I/opt/vc/src/hello_pi/libs/vgfont \
 		-I/opt/vc/src/hello_pi/libs/revision \
 		-g \
-		-c toy.cpp \
-		-o toy.o
+		-c main.cpp \
+		-o main.o
 
 
 RPI1.o : RPI1.cpp Window.hpp
