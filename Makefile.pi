@@ -16,6 +16,7 @@ toy: main.o RPI1.o Conf.o
 		-lvchiq_arm \
 		-lpthread \
 		-lrt \
+		-lncursesw \
 		-lm \
 		-llo \
 		-L/opt/vc/src/hello_pi/libs/ilclient \
