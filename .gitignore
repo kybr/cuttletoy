@@ -1,6 +1,6 @@
 toy
 frag
-terminal
+terminal/terminal
 *.dSYM
 cuttletoy
 server
