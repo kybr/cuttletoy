@@ -135,6 +135,9 @@ int main(int argc, char* argv[]) {
     bkgd(COLOR_PAIR(argv[0]->i));
     //refresh();
   });
+  server.add_method("/quit", "", [&](lo_arg** argv, int argc, lo::Message m) {
+    exit(0);
+  });
 
 
   server.start();
