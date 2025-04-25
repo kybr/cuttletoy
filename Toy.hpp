@@ -47,9 +47,9 @@ class Toy {
   // vec4 u_button; // x, y, z, w are buttons (0, 1)
   // vec4 u_random; // random values
 
-  Conf conf;
 
  public:
+  Conf conf;
   float u_time = 0.0f;
   vec3 u_screen = {0.0f, 0.0f, -1.0f};
   vec3 u_analog_left = {0.0f, 0.0f, 0.0f};

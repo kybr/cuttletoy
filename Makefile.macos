@@ -10,6 +10,7 @@ INCLUDE+= -I /opt/homebrew/include
 LIBRARY=
 LIBRARY+= -L /opt/homebrew/lib
 LIBRARY+= -llo
+LIBRARY+= -lcurses
 LIBRARY+= -lglfw
 
 toy : main.o GLFW.o Conf.o

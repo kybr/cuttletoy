@@ -3,6 +3,7 @@
 #include <cassert>
 // <cassert> must come before liblo on the pi
 
+#include <curses.h>
 #include <lo/lo.h>
 #include <lo/lo_cpp.h>
 
@@ -13,8 +14,45 @@
 
 #include "Toy.hpp"
 
+
+
 int main(int argc, char* argv[]) {
   auto begining = std::chrono::steady_clock::now();
+
+  initscr();
+  cbreak();
+  noecho();
+  curs_set(0);
+  std::atexit([]() {
+    endwin();
+  });
+  start_color();
+  init_pair(1, COLOR_WHITE, COLOR_BLACK);
+  init_pair(2, COLOR_RED, COLOR_BLACK);
+  init_pair(3, COLOR_GREEN, COLOR_BLACK);
+  init_pair(4, COLOR_YELLOW, COLOR_BLACK);
+  init_pair(5, COLOR_BLUE, COLOR_BLACK);
+  init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+  init_pair(7, COLOR_CYAN, COLOR_BLACK);
+
+  init_pair(8, COLOR_BLACK, COLOR_RED);
+  init_pair(9, COLOR_BLACK, COLOR_GREEN);
+  init_pair(10, COLOR_BLACK, COLOR_YELLOW);
+  init_pair(11, COLOR_BLACK, COLOR_BLUE);
+  init_pair(12, COLOR_BLACK, COLOR_MAGENTA);
+  init_pair(13, COLOR_BLACK, COLOR_CYAN);
+  init_pair(14, COLOR_BLACK, COLOR_WHITE);
+
+  init_pair(15, COLOR_WHITE, COLOR_WHITE);
+  init_pair(16, COLOR_RED, COLOR_WHITE);
+  init_pair(17, COLOR_GREEN, COLOR_WHITE);
+  init_pair(18, COLOR_YELLOW, COLOR_WHITE);
+  init_pair(19, COLOR_BLUE, COLOR_WHITE);
+  init_pair(20, COLOR_MAGENTA, COLOR_WHITE);
+  init_pair(21, COLOR_CYAN, COLOR_WHITE);
+
+  move(10, 10);
+  printw("COLS:%d LINES:%d", COLS, LINES);
 
   Toy toy;
 
@@ -76,9 +114,28 @@ int main(int argc, char* argv[]) {
     strncpy(fragment, &argv[0]->s, sizeof(fragment));
     hasNewFrag = true;
 
-    printf("fragment is %d bytes\n", (int)strlen(fragment));
-    fflush(stdout);
+    move(2, 0);
+    printw("fragment is %d bytes\n", (int)strlen(fragment));
+    refresh();
   });
+
+  server.add_method("/print", "iis", [&](lo_arg** argv, int argc, lo::Message m) {
+    if (argc != 3) {
+      return;
+    }
+    move(argv[0]->i, argv[1]->i);
+    printw("%s", &argv[2]->s);
+    refresh();
+  });
+
+  server.add_method("/bkgd", "i", [&](lo_arg** argv, int argc, lo::Message m) {
+    if (argc != 1) {
+      return;
+    }
+    bkgd(COLOR_PAIR(argv[0]->i));
+    //refresh();
+  });
+
 
   server.start();
 
@@ -91,15 +148,18 @@ int main(int argc, char* argv[]) {
     lo::Address them("localhost", 7777);
     while (running) {
       them.send("/fps", "i", framecount);
-      printf("FPS: %d\n", framecount);
-      fflush(stdout);
+
+      // curses output....
+      move(0, 0);
+      printw("FPS: %d", framecount);
+      refresh();
+
       framecount = 0;
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
   });
 
   while (!toy.done()) {
-    auto now = std::chrono::steady_clock::now();
 
     if (hasNewFrag) {
       hasNewFrag = false;
@@ -110,24 +170,27 @@ int main(int argc, char* argv[]) {
           remote->send("/err", "s", error.c_str());
         }
       }
-      printf(
+      move(1, 0);
+      printw(
           "fragment compile took %.3lf ms\n",
           std::chrono::duration<double>(std::chrono::steady_clock::now() - tic)
                   .count() *
               1000);
+      refresh();
     }
 
+    auto now = std::chrono::steady_clock::now();
     double time = std::chrono::duration<double>(now - begining).count();
-
     toy.draw(time);
 
-    double dt = std::chrono::duration<double>(now - then).count();
-    then = now;
-    double fps = 1 / dt;
+    //double dt = std::chrono::duration<double>(now - then).count();
+    //then = now;
 
     framecount++;
   }
 
   running = false;
   sendfps.join();
+
+  endwin();
 }

@@ -46,7 +46,7 @@ void main() {
   p = rotate(p, u_time * 0.5);
   p *= -1.0 + length(p) + 2.0 * sin(u_time);
   vec2 f = mod(p * 35.0, 2.0) - vec2(1);
-  float x = 1.0 - pow(length(f), 3.0);
-  //float x = length(f) > 0.8 ? 0.0 : 1.0;
+  //float x = 1.0 - pow(length(f), 3.0);
+  float x = length(f) > 0.8 ? 0.0 : 1.0;
   gl_FragColor = vec4(vec3(x), 1.0);
 }
