@@ -1,0 +1,17 @@
+#!/usr/bin/env raku
+my $fontfile =
+  @*ARGV[1] // "/usr/share/consolefonts/Unifont-APL8x16-16.0.03.psf.gz";
+my $file = qqx{zcat $fontfile | psfgettable -};
+#say $file;
+my @points = $file
+  .lines
+  .grep(/0x/)
+  .map({
+    .words[1].split('+')[1]
+  })
+  .map({
+    "0x$_".Int.chr
+  });
+my $guts = @points.map({ '"' ~ $_ ~ '"'}).join(",");
+my $n = @points.elems;
+say "const char* glyph[$n]=\{$guts\};"
