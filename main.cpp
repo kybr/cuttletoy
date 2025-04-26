@@ -17,6 +17,7 @@
 
 
 int main(int argc, char* argv[]) {
+  setlocale(LC_ALL, "");
   auto begining = std::chrono::steady_clock::now();
 
   initscr();
@@ -123,7 +124,8 @@ int main(int argc, char* argv[]) {
     if (argc != 3) {
       return;
     }
-    move(argv[0]->i, argv[1]->i);
+    // it is move(y, x) aka move(line, column)
+    move(argv[1]->i, argv[0]->i);
     printw("%s", &argv[2]->s);
     refresh();
   });
