@@ -11,5 +11,6 @@ void main() {
   vec2 pixel = fract(gl_FragCoord.xy);
   // proves that fragcoord are at (0.5, 0.5)
   float color = pixel.y == 0.5 ? 1.0 : 0.0;
+  // on the raspberry pi, fragcoord is (0.0, 0.0) instead
   gl_FragColor = vec4(vec3(color), 1);
 }
