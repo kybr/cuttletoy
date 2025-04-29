@@ -1,6 +1,7 @@
 toy
 frag
 terminal/terminal
+noise
 *.dSYM
 cuttletoy
 server

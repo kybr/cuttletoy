@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <lo/lo.h>
 
-//#include "data/code/Unifont-APL8x16-16.0.03.psf.gz.txt.h"
-#include "data/h/Uni3-Terminus24x12.psf.gz.txt.h"
+#include "data/h/Unifont-APL8x16-16.0.03.psf.gz.txt.h"
+//#include "data/h/Uni3-Terminus24x12.psf.gz.txt.h"
 
 int state = 0;
 float rndf() {
@@ -37,8 +37,8 @@ int main() {
     //int x = rndu() % 53; // 25 + 25 * rndf();
     //int y = rndu() % 32; // 16 * 15 * rndf();
     //int i = rndu() % length;
-    int x = rand() % 53;
-    int y = rand() % 32;
+    int x = rand() % 240;
+    int y = rand() % 67;
     int i = rand() % length;
     printf("%d: %s\n", i, glyph[i]);
     if (lo_send(t, "/print", "iis", x, y, glyph[i]) == -1) {

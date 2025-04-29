@@ -1,2 +1,2 @@
 _:
-	cc terminal.c -Wall -Werror -o terminal -lncurses -I /opt/homebrew/include -L /opt/homebrew/lib
+	cc noise.c -Wall -Werror -o noise -I /opt/homebrew/include -L /opt/homebrew/lib -llo
