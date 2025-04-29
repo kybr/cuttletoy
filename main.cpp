@@ -15,6 +15,7 @@
 #include "Toy.hpp"
 
 int main(int argc, char* argv[]) {
+  double time = 0.0;
   setlocale(LC_ALL, "");
   auto begining = std::chrono::steady_clock::now();
 
@@ -47,6 +48,8 @@ int main(int argc, char* argv[]) {
   init_pair(19, COLOR_BLUE, COLOR_WHITE);
   init_pair(20, COLOR_MAGENTA, COLOR_WHITE);
   init_pair(21, COLOR_CYAN, COLOR_WHITE);
+
+  bkgd(COLOR_PAIR(1));
 
   move(10, 10);
   printw("COLS:%d LINES:%d", COLS, LINES);
@@ -120,6 +123,10 @@ int main(int argc, char* argv[]) {
     refresh();
   });
 
+  server.add_method("/time", "d", [&](lo_arg** argv, int, lo::Message m) {
+    time = argv[0]->d;
+  });
+
   server.add_method("/print", "iis",
                     [&](lo_arg** argv, int argc, lo::Message m) {
                       if (argc != 3) {
@@ -144,7 +151,6 @@ int main(int argc, char* argv[]) {
 
   server.start();
 
-  auto then = std::chrono::steady_clock::now();
 
   int framecount = 0;
   bool running = true;
@@ -164,6 +170,7 @@ int main(int argc, char* argv[]) {
     }
   });
 
+  auto then = std::chrono::steady_clock::now();
   while (!toy.done()) {
     if (hasNewFrag) {
       hasNewFrag = false;
@@ -184,12 +191,14 @@ int main(int argc, char* argv[]) {
     }
 
     auto now = std::chrono::steady_clock::now();
-    double time = std::chrono::duration<double>(now - begining).count();
+    double dt = std::chrono::duration<double>(now - then).count();
+    then = now;
+    time += dt;
     toy.draw(time);
 
-    // double dt = std::chrono::duration<double>(now - then).count();
-    // then = now;
-
+    move(5, 0);
+    printw("time: %.3lf", time);
+    // refresh(); // does this block? will it make things slow?
     framecount++;
   }
 
