@@ -1,2 +1,2 @@
 _:
-	cc noise.c -Wall -Werror -o noise -I /opt/homebrew/include -L /opt/homebrew/lib -llo
+	cc -std=c11 noise.c -Wall -Werror -o noise -I /opt/homebrew/include -L /opt/homebrew/lib -llo
