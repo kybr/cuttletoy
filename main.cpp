@@ -56,6 +56,10 @@ int main(int argc, char* argv[]) {
 
   Toy toy;
 
+  move(15, 0);
+  printw("pi: %d column:%d row:%d", toy.conf.id, toy.conf.x_screen,
+         toy.conf.y_screen);
+
   lo::Address client("224.0.7.24", "7771");
 
   client.send("/size", "ii", COLS, LINES);
@@ -129,19 +133,21 @@ int main(int argc, char* argv[]) {
 
   server.add_method("/print", "iis",
                     [&](lo_arg** argv, int argc, lo::Message m) {
-                      if (argc != 3) {
+                      int x = argv[0]->i - toy.conf.x_screen * COLS;
+                      int y = argv[1]->i - toy.conf.y_screen * LINES;
+                      if ((x < 0) || (x >= COLS) || (y < 0) || (y >= LINES)) {
+                        //endwin();
+                        //printf("got %d %d\n", y, x);
+                        //fflush(stdout);
+                        //exit(1);
                         return;
                       }
-                      // it is move(y, x) aka move(line, column)
-                      move(argv[1]->i, argv[0]->i);
+                      move(y, x);  // it is move(y, x) aka move(line, column)
                       printw("%s", &argv[2]->s);
                       refresh();
                     });
 
   server.add_method("/bkgd", "i", [&](lo_arg** argv, int argc, lo::Message m) {
-    if (argc != 1) {
-      return;
-    }
     bkgd(COLOR_PAIR(argv[0]->i));
     // refresh();
   });
@@ -150,7 +156,6 @@ int main(int argc, char* argv[]) {
                     [&](lo_arg** argv, int argc, lo::Message m) { exit(0); });
 
   server.start();
-
 
   int framecount = 0;
   bool running = true;
