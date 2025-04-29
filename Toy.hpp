@@ -157,7 +157,7 @@ class Toy {
     glShaderSource(fragment_shader, 1, &fragment_shader_text, nullptr);
     glCompileShader(fragment_shader);
     if (!check_shader_compile(fragment_shader, error)) {
-      fprintf(stderr, "Error compiling GLSL:\n%s\n", error.c_str());
+      //fprintf(stderr, "Error compiling GLSL:\n%s\n", error.c_str());
       return false;
     }
 
@@ -166,7 +166,7 @@ class Toy {
     glAttachShader(program, fragment_shader);
     glLinkProgram(program);
     if (!check_shader_link(program, error)) {
-      fprintf(stderr, "Error linking program:\n%s\n", error.c_str());
+      //fprintf(stderr, "Error linking program:\n%s\n", error.c_str());
       return false;
     }
 
