@@ -5,8 +5,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "data/h/Unifont-APL8x16-16.0.03.psf.gz.txt.h"
-// #include "data/h/Uni3-Terminus24x12.psf.gz.txt.h"
+//#include "data/h/Unifont-APL8x16-16.0.03.psf.gz.txt.h"
+ #include "data/h/Uni3-Terminus24x12.psf.gz.txt.h"
 
 int state = 0;
 float rndf() {
@@ -51,8 +51,10 @@ int main(int argc, char* argv[]) {
   lo_address t = lo_address_new("224.0.7.23", "7770");
   while (1) {
     usleep(25000);
-    int x = rand() % COLS;
-    int y = rand() % LINES;
+    //int x = rand() % COLS;
+    //int y = rand() % LINES;
+    int x = COLS / 2 + normal() * 5;
+    int y = LINES / 2 + normal() * 2.5;
     int i = rand() % length;
     printf("%d: %s\n", i, glyph[i]);
     if (lo_send(t, "/print", "iis", x, y, glyph[i]) == -1) {

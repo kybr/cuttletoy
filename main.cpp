@@ -136,10 +136,10 @@ int main(int argc, char* argv[]) {
                       int x = argv[0]->i - toy.conf.x_screen * COLS;
                       int y = argv[1]->i - toy.conf.y_screen * LINES;
                       if ((x < 0) || (x >= COLS) || (y < 0) || (y >= LINES)) {
-                        //endwin();
-                        //printf("got %d %d\n", y, x);
-                        //fflush(stdout);
-                        //exit(1);
+                        // endwin();
+                        // printf("got %d %d\n", y, x);
+                        // fflush(stdout);
+                        // exit(1);
                         return;
                       }
                       move(y, x);  // it is move(y, x) aka move(line, column)
