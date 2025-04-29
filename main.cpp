@@ -14,8 +14,6 @@
 
 #include "Toy.hpp"
 
-
-
 int main(int argc, char* argv[]) {
   setlocale(LC_ALL, "");
   auto begining = std::chrono::steady_clock::now();
@@ -24,9 +22,7 @@ int main(int argc, char* argv[]) {
   cbreak();
   noecho();
   curs_set(0);
-  std::atexit([]() {
-    endwin();
-  });
+  std::atexit([]() { endwin(); });
   start_color();
   init_pair(1, COLOR_WHITE, COLOR_BLACK);
   init_pair(2, COLOR_RED, COLOR_BLACK);
@@ -56,6 +52,10 @@ int main(int argc, char* argv[]) {
   printw("COLS:%d LINES:%d", COLS, LINES);
 
   Toy toy;
+
+  lo::Address client("224.0.7.24", "7771");
+
+  client.send("/size", "ii", COLS, LINES);
 
   lo::ServerThread server("224.0.7.23", "7770", nullptr, nullptr,
                           [](int n, const char* message, const char* where) {
@@ -120,27 +120,27 @@ int main(int argc, char* argv[]) {
     refresh();
   });
 
-  server.add_method("/print", "iis", [&](lo_arg** argv, int argc, lo::Message m) {
-    if (argc != 3) {
-      return;
-    }
-    // it is move(y, x) aka move(line, column)
-    move(argv[1]->i, argv[0]->i);
-    printw("%s", &argv[2]->s);
-    refresh();
-  });
+  server.add_method("/print", "iis",
+                    [&](lo_arg** argv, int argc, lo::Message m) {
+                      if (argc != 3) {
+                        return;
+                      }
+                      // it is move(y, x) aka move(line, column)
+                      move(argv[1]->i, argv[0]->i);
+                      printw("%s", &argv[2]->s);
+                      refresh();
+                    });
 
   server.add_method("/bkgd", "i", [&](lo_arg** argv, int argc, lo::Message m) {
     if (argc != 1) {
       return;
     }
     bkgd(COLOR_PAIR(argv[0]->i));
-    //refresh();
-  });
-  server.add_method("/quit", "", [&](lo_arg** argv, int argc, lo::Message m) {
-    exit(0);
+    // refresh();
   });
 
+  server.add_method("/quit", nullptr,
+                    [&](lo_arg** argv, int argc, lo::Message m) { exit(0); });
 
   server.start();
 
@@ -165,7 +165,6 @@ int main(int argc, char* argv[]) {
   });
 
   while (!toy.done()) {
-
     if (hasNewFrag) {
       hasNewFrag = false;
       std::string error;
@@ -188,8 +187,8 @@ int main(int argc, char* argv[]) {
     double time = std::chrono::duration<double>(now - begining).count();
     toy.draw(time);
 
-    //double dt = std::chrono::duration<double>(now - then).count();
-    //then = now;
+    // double dt = std::chrono::duration<double>(now - then).count();
+    // then = now;
 
     framecount++;
   }
