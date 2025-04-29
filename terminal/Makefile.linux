@@ -1,0 +1,4 @@
+_:
+	cc noise.c -Wall -Werror -o noise -I /opt/homebrew/include -L /opt/homebrew/lib -llo -lm
+	c++ -std=c++11 terminal.cpp -Wall -Werror -o terminal -I /opt/homebrew/include -L /opt/homebrew/lib -llo -lncursesw
+	# it really has to be ncursesw (with a w) on linux

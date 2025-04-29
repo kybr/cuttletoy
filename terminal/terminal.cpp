@@ -8,7 +8,10 @@
 #include <lo/lo_cpp.h>
 
 int main(int argc, char* argv[]) {
+  bool disable_curses = argc > 1;
+
   setlocale(LC_ALL, "");
+  //setlocale(LC_ALL, "en_US.UTF-8");
   initscr();
   cbreak();
   noecho();
@@ -43,6 +46,11 @@ int main(int argc, char* argv[]) {
 
   move(10, 10);
   printw("COLS:%d LINES:%d", COLS, LINES);
+  refresh();
+
+  if (disable_curses) {
+    endwin();
+  }
 
   lo::Address client("224.0.7.24", "7771");
 
@@ -62,6 +70,10 @@ int main(int argc, char* argv[]) {
                       if ((x < 0) || (x >= COLS) || (y < 0) || (y >= LINES)) {
                         return;
                       }
+		      if (disable_curses) {
+		        printf("%s\n", &argv[2]->s);
+			return;
+		      }
                       move(y, x);  // it is move(y, x) aka move(line, column)
                       printw("%s", &argv[2]->s);
                       refresh();
