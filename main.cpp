@@ -8,6 +8,7 @@
 #include <lo/lo_cpp.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <cstring>
 #include <iostream>
 #include <thread>
@@ -145,6 +146,19 @@ int main(int argc, char* argv[]) {
                       move(y, x);  // it is move(y, x) aka move(line, column)
                       printw("%s", &argv[2]->s);
                       refresh();
+                    });
+
+  server.add_method("/logout", "", [&](lo_arg** argv, int argc, lo::Message m) {
+    system("pkill -t tty1 bash -9");
+  });
+
+  server.add_method("/display", "i",
+                    [&](lo_arg** argv, int argc, lo::Message m) {
+                      if (argv[0]->i == 0) {
+                        system("vcgencmd display_power 0");
+                      } else {
+                        system("vcgencmd display_power 1");
+                      }
                     });
 
   server.add_method("/bkgd", "i", [&](lo_arg** argv, int argc, lo::Message m) {
