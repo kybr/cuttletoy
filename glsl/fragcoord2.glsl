@@ -9,7 +9,7 @@ uniform vec4 u_random;
 
 void main() {
   vec2 pixel = fract(gl_FragCoord.xy);
-  // fragcoord are at (0.5, 0.5)
+  // proves that fragcoord are at (0.5, 0.5)
   float color = pixel.y == 0.5 ? 1.0 : 0.0;
   gl_FragColor = vec4(vec3(color), 1);
 }
