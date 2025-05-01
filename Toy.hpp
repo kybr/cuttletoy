@@ -60,9 +60,9 @@ class Toy {
 
   Toy() {
     if (conf.load()) {
-      printf("toy.conf loaded\n");
+      //printf("toy.conf loaded\n");
     }
-    conf.show();
+    //conf.show();
 
     // these never change
     u_screen.x = conf.x_screen;

@@ -52,14 +52,13 @@ int main(int argc, char* argv[]) {
 
   bkgd(COLOR_PAIR(1));
 
-  move(10, 10);
-  printw("COLS:%d LINES:%d", COLS, LINES);
+  // move(10, 10);
+  // printw("COLS:%d LINES:%d", COLS, LINES);
 
   Toy toy;
 
-  move(15, 0);
-  printw("pi: %d column:%d row:%d", toy.conf.id, toy.conf.x_screen,
-         toy.conf.y_screen);
+  // move(15, 0);
+  // printw("pi: %d column:%d row:%d", toy.conf.id, toy.conf.x_screen, toy.conf.y_screen);
 
   lo::Address client("224.0.7.24", "7771");
 
@@ -180,9 +179,9 @@ int main(int argc, char* argv[]) {
       them.send("/fps", "i", framecount);
 
       // curses output....
-      move(0, 0);
-      printw("FPS: %d", framecount);
-      refresh();
+      //move(0, 0);
+      //printw("FPS: %d", framecount);
+      //refresh();
 
       framecount = 0;
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
