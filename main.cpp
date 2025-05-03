@@ -58,7 +58,8 @@ int main(int argc, char* argv[]) {
   Toy toy;
 
   // move(15, 0);
-  // printw("pi: %d column:%d row:%d", toy.conf.id, toy.conf.x_screen, toy.conf.y_screen);
+  // printw("pi: %d column:%d row:%d", toy.conf.id, toy.conf.x_screen,
+  // toy.conf.y_screen);
 
   lo::Address client("224.0.7.24", "7771");
 
@@ -122,9 +123,9 @@ int main(int argc, char* argv[]) {
     strncpy(fragment, &argv[0]->s, sizeof(fragment));
     hasNewFrag = true;
 
-    move(2, 0);
-    printw("fragment is %d bytes\n", (int)strlen(fragment));
-    refresh();
+    // move(2, 0);
+    // printw("fragment is %d bytes\n", (int)strlen(fragment));
+    // refresh();
   });
 
   server.add_method("/time", "d", [&](lo_arg** argv, int, lo::Message m) {
@@ -162,7 +163,7 @@ int main(int argc, char* argv[]) {
 
   server.add_method("/bkgd", "i", [&](lo_arg** argv, int argc, lo::Message m) {
     bkgd(COLOR_PAIR(argv[0]->i));
-    // refresh();
+    refresh();
   });
 
   server.add_method("/quit", nullptr,
@@ -179,9 +180,9 @@ int main(int argc, char* argv[]) {
       them.send("/fps", "i", framecount);
 
       // curses output....
-      //move(0, 0);
-      //printw("FPS: %d", framecount);
-      //refresh();
+      // move(0, 0);
+      // printw("FPS: %d", framecount);
+      // refresh();
 
       framecount = 0;
       std::this_thread::sleep_for(std::chrono::milliseconds(1000));
@@ -194,18 +195,22 @@ int main(int argc, char* argv[]) {
       hasNewFrag = false;
       std::string error;
       auto tic = std::chrono::steady_clock::now();
-      if (!toy.compile(fragment, error)) {
+      bool success = toy.compile(fragment, error);
+      float t =
+          std::chrono::duration<double>(std::chrono::steady_clock::now() - tic)
+              .count();
+      if (success) {
+        if (remote) {
+          char buffer[10000];
+          int ms = t * 1000;
+          snprintf(buffer, sizeof(buffer), "compiled in %d millisecond%s", ms, ms == 1 ? "" : "s");
+          remote->send("/err", "s", buffer);
+        }
+      } else {
         if (remote) {
           remote->send("/err", "s", error.c_str());
         }
       }
-      move(1, 0);
-      printw(
-          "fragment compile took %.3lf ms\n",
-          std::chrono::duration<double>(std::chrono::steady_clock::now() - tic)
-                  .count() *
-              1000);
-      refresh();
     }
 
     auto now = std::chrono::steady_clock::now();
@@ -214,8 +219,8 @@ int main(int argc, char* argv[]) {
     time += dt;
     toy.draw(time);
 
-    move(5, 0);
-    printw("time: %.3lf", time);
+    // move(5, 0);
+    // printw("time: %.3lf", time);
     // refresh(); // does this block? will it make things slow?
     framecount++;
   }

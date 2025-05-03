@@ -77,7 +77,7 @@ void main() {
   vec2 p = pixel();
   float n = noise(
       vec2(noise(p * 10000.0 + u_time * 0.01), noise(car2polar(p * 10000.0 + u_time * 0.01))));
-  if (n < 0.5) {
+  if (n < 0.9) {
     discard;
   }
 }
