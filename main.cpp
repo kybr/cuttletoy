@@ -202,8 +202,7 @@ int main(int argc, char* argv[]) {
       if (success) {
         if (remote) {
           char buffer[10000];
-          int ms = t * 1000;
-          snprintf(buffer, sizeof(buffer), "compiled in %d millisecond%s", ms, ms == 1 ? "" : "s");
+          snprintf(buffer, sizeof(buffer), "compiled in %0.1f ms", t * 1000);
           remote->send("/err", "s", buffer);
         }
       } else {
