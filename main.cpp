@@ -174,10 +174,13 @@ int main(int argc, char* argv[]) {
   int framecount = 0;
   bool running = true;
 
+  bool shouldSendFPS = false;
   std::thread sendfps([&]() {
-    lo::Address them("localhost", 7777);
     while (running) {
-      them.send("/fps", "i", framecount);
+      if (shouldSendFPS) {
+        shouldSendFPS = false;
+        client.send("/fps", "i", framecount);
+      }
 
       // curses output....
       // move(0, 0);
@@ -200,6 +203,7 @@ int main(int argc, char* argv[]) {
           std::chrono::duration<double>(std::chrono::steady_clock::now() - tic)
               .count();
       if (success) {
+        shouldSendFPS = true;
         if (remote) {
           char buffer[10000];
           snprintf(buffer, sizeof(buffer), "compiled in %0.1f ms", t * 1000);
