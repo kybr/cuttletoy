@@ -179,7 +179,9 @@ int main(int argc, char* argv[]) {
     while (running) {
       if (shouldSendFPS) {
         shouldSendFPS = false;
-        client.send("/fps", "i", framecount);
+        char buffer[100];
+        snprintf(buffer, sizeof(buffer), "%d", framecount);
+        client.send("/fps", "s", buffer);
       }
 
       // curses output....
