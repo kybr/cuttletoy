@@ -52,6 +52,9 @@ int main(int argc, char* argv[]) {
 
   bkgd(COLOR_PAIR(1));
 
+  clear();
+  refresh();
+
   // move(10, 10);
   // printw("COLS:%d LINES:%d", COLS, LINES);
 
@@ -131,6 +134,14 @@ int main(int argc, char* argv[]) {
   server.add_method("/time", "d", [&](lo_arg** argv, int, lo::Message m) {
     time = argv[0]->d;
   });
+
+  server.add_method("/clear", "", [&](lo_arg** argv, int, lo::Message m) {
+    clear();
+  });
+  server.add_method("/refresh", "", [&](lo_arg** argv, int, lo::Message m) {
+    refresh();
+  });
+
 
   server.add_method("/print", "iis",
                     [&](lo_arg** argv, int argc, lo::Message m) {
