@@ -11,6 +11,7 @@ uniform vec4 u_random;
 
 vec2 pixel() {
   vec2 p = gl_FragCoord.xy;
+  p += vec2(0.5);
   if (u_screen.z == 0.0) {
     p /= u_size;
   } else {
@@ -46,6 +47,10 @@ void main() {
   if (mod(strip, N) == 2.0) {
     gl_FragColor = vec4(vec3(1.0, 0.0, 0.0), 1.0);
     return;
+  }
+
+  if (color == 0.0) {
+    discard;
   }
   
   gl_FragColor = vec4(vec3(color), 1.0);

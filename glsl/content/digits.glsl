@@ -45,65 +45,65 @@ float g(vec2 p) { return sdBox(p + vec2(0, 0), vec2(0.2, 0.01)); }
 void main() {
   vec2 p = pixel();
   p *= 1.0;
-  float d = 0.0;
+  float z = 0.0;
   int id = int(mod(u_time * 2.1, 16.0));
   if (0 == 1) { }
   else if (id == 0) {
-    d = min(a(p), min(b(p), min(c(p), min(d(p), min(e(p), f(p))))));
+    z = min(a(p), min(b(p), min(c(p), min(d(p), min(e(p), f(p))))));
   }
   else if (id == 1) {
-    d = min(b(p), c(p));
+    z = min(b(p), c(p));
   }
   else if (id == 2) {
-    d = min(a(p), min(b(p), min(d(p), min(e(p), g(p)))));
+    z = min(a(p), min(b(p), min(d(p), min(e(p), g(p)))));
   }
   else if (id == 3) {
-    d = min(a(p), min(b(p), min(c(p), min(d(p), g(p)))));
+    z = min(a(p), min(b(p), min(c(p), min(d(p), g(p)))));
   }
   else if (id == 4) {
-    d = min(b(p), min(c(p), min(f(p), g(p))));
+    z = min(b(p), min(c(p), min(f(p), g(p))));
     // b c f g
   }
   else if (id == 5) {
-    d = min(a(p), min(c(p), min(d(p), min(f(p), g(p)))));
+    z = min(a(p), min(c(p), min(d(p), min(f(p), g(p)))));
     // a c d f g
   }
   else if (id == 6) {
-    d = min(a(p), min(c(p), min(d(p), min(e(p), min(f(p), g(p))))));
+    z = min(a(p), min(c(p), min(d(p), min(e(p), min(f(p), g(p))))));
     // not b
   }
   else if (id == 7) {
-    d = min(a(p), min(b(p), c(p)));
+    z = min(a(p), min(b(p), c(p)));
     // a b c
   }
   else if (id == 8) {
-    d = min(a(p), min(b(p), min(c(p), min(d(p), min(e(p), min(f(p), g(p)))))));
+    z = min(a(p), min(b(p), min(c(p), min(d(p), min(e(p), min(f(p), g(p)))))));
     // a b c d e f g
   }
   else if (id == 9) {
-    d = min(a(p), min(b(p), min(c(p), min(f(p), g(p)))));
+    z = min(a(p), min(b(p), min(c(p), min(f(p), g(p)))));
     // not e or d
   }
   else if (id == 0xA) {
-    d = min(a(p), min(b(p), min(c(p), min(e(p), min(f(p), g(p))))));
+    z = min(a(p), min(b(p), min(c(p), min(e(p), min(f(p), g(p))))));
   }
   else if (id == 0xb) {
-    d = min(c(p), min(d(p), min(e(p), min(f(p), g(p)))));
+    z = min(c(p), min(d(p), min(e(p), min(f(p), g(p)))));
   }
   else if (id == 0xC) {
-    d = min(a(p), min(f(p), min(e(p), d(p))));
+    z = min(a(p), min(f(p), min(e(p), d(p))));
   }
   else if (id == 0xd) {
-    d = min(b(p), min(c(p), min(d(p), min(e(p), g(p)))));
+    z = min(b(p), min(c(p), min(d(p), min(e(p), g(p)))));
   }
   else if (id == 0xE) {
-    d = min(a(p), min(d(p), min(e(p), min(f(p), g(p)))));
+    z = min(a(p), min(d(p), min(e(p), min(f(p), g(p)))));
   }
   else if (id == 0xF) {
-    d = min(a(p), min(e(p), min(f(p), g(p))));
+    z = min(a(p), min(e(p), min(f(p), g(p))));
   }
   else {
-    d = 1.0;
+    discard;
   }
-  gl_FragColor = vec4(vec3(d), 1.0);
+  gl_FragColor = vec4(vec3(z), 1.0);
 }

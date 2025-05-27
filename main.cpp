@@ -137,11 +137,8 @@ int main(int argc, char* argv[]) {
 
   server.add_method("/clear", "", [&](lo_arg** argv, int, lo::Message m) {
     clear();
-  });
-  server.add_method("/refresh", "", [&](lo_arg** argv, int, lo::Message m) {
     refresh();
   });
-
 
   server.add_method("/print", "iis",
                     [&](lo_arg** argv, int argc, lo::Message m) {
