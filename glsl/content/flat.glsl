@@ -90,5 +90,10 @@ void main() {
     color = 0.0;
   }
 
+  if (color < 0.5) {
+    discard;
+    return;
+  }
+
   gl_FragColor = vec4(vec3(color), 1.0);
 }
