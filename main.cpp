@@ -59,6 +59,7 @@ int main(int argc, char* argv[]) {
   // printw("COLS:%d LINES:%d", COLS, LINES);
 
   Toy toy;
+  srand(toy.conf.id + 1);
 
   // move(15, 0);
   // printw("pi: %d column:%d row:%d", toy.conf.id, toy.conf.x_screen,
