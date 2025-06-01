@@ -41,6 +41,7 @@ void main() {
   vec2 uv = pixel();
 
   vec2 polar = car2polar(uv);
+  polar.x = pow(polar.x, 2.0 * sin(u_time * 0.1) + 1.0);
 
   float N = 10.0;
   float strip = floor(polar.y * N + polar.x * N - u_time / 1.0);

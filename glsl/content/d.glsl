@@ -51,5 +51,9 @@ void main() {
     return;
   }
   n = mod(n + 0.01, 2.0);
+  if (n < 0.5) {
+    discard;
+    return;
+  }
   gl_FragColor = vec4(vec3(n), 1.0);
 }
