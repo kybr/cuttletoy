@@ -1,8 +1,7 @@
 #!/bin/sh
 
-
 oscsend 224.0.7.23 7770 /display i 1
-
+oscsend 224.0.7.23 7770 /quit
 
 while true; do
 
