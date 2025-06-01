@@ -135,6 +135,10 @@ int main(int argc, char* argv[]) {
     time = argv[0]->d;
   });
 
+  server.add_method("/desync", "", [&](lo_arg** argv, int, lo::Message m) {
+    time += rand() / (float)RAND_MAX;
+  });
+
   server.add_method("/clear", "", [&](lo_arg** argv, int, lo::Message m) {
     clear();
     refresh();

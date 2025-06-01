@@ -43,8 +43,8 @@ vec2 rotate(vec2 v, float a) {
 void main() {
   vec2 p = pixel();
   p += vec2(0.3);
-  p = rotate(p, u_time * 0.5);
-  p *= -1.0 + length(p) + 2.0 * sin(u_time);
+  p = rotate(p, u_time * 0.15);
+  p *= -1.0 + length(p) + 2.0 * sin(u_time * 0.5);
   vec2 f = mod(p * 35.0, 2.0) - vec2(1);
   //float x = 1.0 - pow(length(f), 3.0);
   float x = length(f) > 0.8 ? 0.0 : 1.0;

@@ -31,22 +31,16 @@ double normal() {
 
 const int length = sizeof(glyph) / sizeof(glyph[0]);
 
-#define NBUBLE (50)
-
-typedef struct {
-    int x, y;
-    int state;
-} Bubble;
-Bubble bubble[NBUBLE];
-
 int main(int argc, char* argv[]) {
-  if (argc != 3) {
-    fprintf(stderr, "Provide terminal width and height\n");
+  if (argc != 4) {
+    fprintf(stderr, "Provide terminal width and height and runtime\n");
     exit(1);
   }
 
   int COLS = atoi(argv[1]);
   int LINES = atoi(argv[2]);
+  double LENGTH = atof(argv[3]);
+
   if (COLS <= 10 || LINES <= 10) {
     fprintf(stderr, "Are you kidding?\n");
     exit(1);
@@ -56,35 +50,24 @@ int main(int argc, char* argv[]) {
 
   printf("%d x %d\n", COLS, LINES);
 
-  for (int i = 0; i < NBUBLE; i++) {
-      bubble[i].x = rndu() % COLS;
-      bubble[i].y = rndu() % LINES;
-      bubble[i].state = rndu() % 2;
-  }
-
   lo_address t = lo_address_new("224.0.7.23", "7770");
+  double runtime = 0;
   while (1) {
 
-    for (int k = 0; k < NBUBLE; ++k) {
-        usleep(11000);
+#define WAIT (7000)
 
-        int i = rand() % length;
+    usleep(WAIT);
 
-        if (lo_send(t, "/print", "iis", bubble[k].x, bubble[k].y, " ") == -1) {
-          printf("OSC error %d: %s\n", lo_address_errno(t), lo_address_errstr(t));
-        }
+    int i = rand() % length;
+    int row = rndu() % LINES;
+    int column = rndu() % COLS;
 
-        bubble[k].x += bubble[k].state ? 1 : -1;
-        bubble[k].state = 1 - bubble[k].state;
-        bubble[k].y--;
-
-        if (bubble[k].y <= 0) {
-            bubble[k].y = LINES;
-        }
-
-        if (lo_send(t, "/print", "iis", bubble[k].x, bubble[k].y, glyph[i]) == -1) {
-          printf("OSC error %d: %s\n", lo_address_errno(t), lo_address_errstr(t));
-        }
+    if (lo_send(t, "/print", "iis", column, row, glyph[i]) == -1) {
+      printf("OSC error %d: %s\n", lo_address_errno(t), lo_address_errstr(t));
     }
+
+    runtime += WAIT / 1000000.0;
+
+    if (runtime > LENGTH) return 0;
   }
 }
