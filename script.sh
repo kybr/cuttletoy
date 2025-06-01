@@ -16,32 +16,6 @@ sleep 130
 ./terminal/stars 960 268 35
 ./cli/frag glsl/content/flat2.glsl
 ./terminal/stars 960 268 65
-
-oscsend 192.68.7.3 7770 /time d
-
-oscsend 192.68.7.4 7770 /time d
-oscsend 192.68.7.5 7770 /time d
-oscsend 192.68.7.6 7770 /time d
-oscsend 192.68.7.7 7770 /time d
-oscsend 192.68.7.8 7770 /time d
-oscsend 192.68.7.9 7770 /time d
-oscsend 192.68.7.10 7770 /time d
-oscsend 192.68.7.11 7770 /time d
-oscsend 192.68.7.12 7770 /time d
-oscsend 192.68.7.13 7770 /time d
-oscsend 192.68.7.14 7770 /time d
-oscsend 192.68.7.15 7770 /time d
-oscsend 192.68.7.16 7770 /time d
-oscsend 192.68.7.17 7770 /time d
-oscsend 192.68.7.18 7770 /time d
-
-
-
-
-
-
-
-
-
+oscsend 224.0.7.23 7770 /desync
 
 
