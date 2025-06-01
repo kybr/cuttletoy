@@ -15,6 +15,7 @@ vec2 pixel() {
   if (u_screen.z == 0.0) {
     p /= u_size;
   } else {
+    p += vec2(0.5);
     float ppi = 93.34;
     float width = 1920.0 + ppi;
     float height = 1080.0 + ppi;
@@ -44,7 +45,7 @@ void main() {
   float N = 10.0;
   float strip = floor(polar.y * N + polar.x * N - u_time / 1.0);
   float color = mod(strip, 2.0);
-  if (mod(strip, N) == 2.0) {
+  if (mod(strip, N) == 3.0) {
     gl_FragColor = vec4(vec3(1.0, 0.0, 0.0), 1.0);
     return;
   }

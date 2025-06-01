@@ -12,6 +12,7 @@ vec2 pixel() {
   if (u_screen.z == 0.0) {
     p /= u_size;
   } else {
+    p += vec2(0.5);
     float ppi = 93.34;
     float width = 1920.0 + ppi;
     float height = 1080.0 + ppi;
@@ -26,7 +27,7 @@ vec2 pixel() {
 }
 
 float random(vec2 st) {
-  return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123 + 5.0 * sin(u_time / 100.0));
+  return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 53758.5453123 + 10.0 * sin(u_time / 150.0));
 }
 
 float noise(vec2 st) {
@@ -45,7 +46,7 @@ void main() {
   vec2 pos = vec2(st * 1.0);
   float n = noise(pos);
   n = floor(n * 20.0);
-  if (n == 2.0) {
+  if (n == 3.0) {
     gl_FragColor = vec4(vec3(1.0, 0.0, 0.0), 1.0);
     return;
   }

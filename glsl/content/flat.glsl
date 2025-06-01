@@ -1,17 +1,27 @@
 uniform float u_time;
 uniform vec2 u_size;
+uniform vec3 u_screen;
+
 vec2 rotate(vec2 v, float a) {
   float s = sin(a);
   float c = cos(a);
   mat2 m = mat2(c, s, -s, c);
   return m * v;
 }
+
+vec3 hsv2rgb(vec3 c) {
+  vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+  vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+  return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
 void main() {
   vec2 p = gl_FragCoord.xy / u_size;
+  float pi = (u_screen.z - 1.0) / 16.0;
   p -= vec2(0.5);
   p.x *= u_size.x / u_size.y;
-  p *= 1.0;
-  p = rotate(p, u_time);
+  p *= 1.0 + 0.1 * sin(u_time + pi);
+  p = rotate(p, u_time + pi * 10.0);
   float color = 1.0;
 
   if (distance(p, vec2(0, 0)) < 0.0001) {
@@ -95,5 +105,8 @@ void main() {
     return;
   }
 
-  gl_FragColor = vec4(vec3(color), 1.0);
+  vec3 rgb = hsv2rgb(vec3(pi, fract(u_time / 100.0), 1.0));
+  gl_FragColor = vec4(rgb, 1.0);
+
+  //gl_FragColor = vec4(vec3(color), 1.0);
 }
